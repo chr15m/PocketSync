@@ -1,0 +1,12 @@
+{:source-paths ["src"]
+ :dependencies [[reagent "0.10.0"]
+                ;[alandipert/storage-atom "2.0.1"]
+                [org.clojure/core.async "1.1.587"]]
+ :dev-http {8000 "public/"}
+ :builds {:app {:target :browser
+                :output-dir "public/js"
+                :asset-path "js"
+                :modules {:main {:init-fn poq.main/main!}}
+                :devtools {:after-load poq.main/reload!
+                           :preloads [shadow.remote.runtime.cljs.browser]}
+                :release {:output-dir "build/js"}}}}
