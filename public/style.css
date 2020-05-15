@@ -8,21 +8,24 @@
   font-weight: bold;
   font-size: 24px;
   padding: 0.25em;
+  margin: 0.25em;
 }
 
 html {
   width: 100%;
   height: 100%;
+  margin: 0px;
+  padding: 0px;
 }
 
 body {
   color: #111;
   margin: 0 auto;
-  max-width: 50em;
   line-height: 1.5;
-  padding: 1em 1em;
   width: 100%;
   height: 100%;
+  margin: 0px;
+  padding: 0px;
 }
 
 h1 {
@@ -77,15 +80,95 @@ blockquote::before, blockquote::after, q::before, q::after {
     content: none;
 }
 
+input {
+  -webkit-appearance: none;
+  border: 1px solid black;
+  background-color: white;
+  border-radius: 0px;
+}
+
+button {
+  background-color: black;
+  color: white;
+  border: none;
+  min-width: 10ch;
+  height: 48px;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 48px;
+  width: 300px;
+  background-color: white;
+  border: 1px solid black;
+  margin: 0px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 48px;
+  height: 48px;
+  background: black;
+  border: 1px solid black;
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 46px;
+  height: 46px;
+  background: black;
+  border: 1px solid black;
+  cursor: pointer;
+  border-radius: 0px;
+}
+
+label {
+  text-align: center;
+  padding: 0px;
+  margin: 0px;
+}
+
 /*** specific ***/
+
+#loading-image {
+  margin: auto;
+  width: 128px;
+}
 
 #app {
   display: flex;
   width: 100%;
   height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0px;
+  padding: 0px;
 }
 
-#loading-image {
-  margin: auto;
-  width: 128px;
+#app > div {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0px;
+  padding: 0px;
+}
+
+#app > div > * {
+  width: 300px;
+  align-self: center;
+}
+
+.input-group {
+  display: flex;
+  justify-content: center;
+  margin: 0.75em 0px;
+}
+
+#bpm {
+  text-align: center;
+  width: 300px;
 }
