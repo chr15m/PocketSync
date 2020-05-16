@@ -2,6 +2,11 @@
 
 .PHONY: watch clean
 
+build/index.html: src/poq/* package.json public/*
+	npx shadow-cljs release app
+	cp -v public/* build/
+	touch build/index.html
+
 watch:
 	npx shadow-cljs watch app 
 
