@@ -64,12 +64,39 @@
     (when track
       (.stop track))))
 
+(defn average [coll]
+  (/ (reduce + coll) (count coll)))
+
+(defn tap! [state ev]
+  (swap! state
+         (fn [state]
+           (let [taps (state :taps)
+                 bpm (or (state :bpm) 180)
+                 taps (if (seq? taps) taps [])
+                 now (.getTime (js/Date.))
+                 taps (conj (if (seq? taps) taps []) now)
+                 taps (filter #(> % (- now 3000)) taps)
+                 tap-threshold (> (count taps) 3)
+                 tap-diffs (reduce
+                             (fn [[last-tap accum] tap]
+                               [tap
+                                (if (= last-tap tap)
+                                  accum
+                                  (conj accum (- last-tap tap)))])
+                             [now []]
+                             taps)
+                 avg-tap-length (average (second tap-diffs))
+                 bpm (if tap-threshold
+                       (int (/ 60000 avg-tap-length))
+                       bpm)]
+             (assoc state :taps taps :bpm bpm)))))
+
 (defn update-val! [state k ev]
   (swap! state
          assoc k (int (-> ev .-target .-value))))
 
 (defn component-main [state]
-  (let [bpm (-> (or (@state :bpm) 180) int (min 200) (max 0))
+  (let [bpm (-> (or (@state :bpm) 180) int (min 170) (max 60))
         swing (-> (or (@state :swing) 0) int (min 100) (max 0))
         playing (@state :playing)]
     [:div
@@ -77,8 +104,8 @@
       [:label
        [:input
         {:type "range"
-         :min 30
-         :max 200
+         :min 60
+         :max 170
          :on-change (partial update-val! state :bpm)
          :on-mouse-up (partial update-loop! state)
          :on-touch-end (partial update-loop! state)
@@ -107,7 +134,7 @@
       (if playing
         [:button {:on-click (partial stop! state)} "stop"]
         [:button {:on-click (partial play! state)} "play"])
-      [:button "tap"]]]))
+      [:button {:on-click (partial tap! state)} "tap"]]]))
 
 (defn reload! []
   (rdom/render [component-main state] (js/document.getElementById "app")))
