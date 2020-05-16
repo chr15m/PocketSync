@@ -37,8 +37,8 @@
                   (if (= (mod beat 2) 0)
                     (< i 882)
                     (and (< (- i swing-frames) 882) (> i swing-frames)))
-                  (add-noise -1)
-                  (add-noise 1))))
+                  (add-noise -1.5)
+                  (add-noise 1.5))))
         (js/console.log array-buffer)))
     (aset source "loop" true)
     (aset source "buffer" buffer)
@@ -68,28 +68,32 @@
   (/ (reduce + coll) (count coll)))
 
 (defn tap! [state ev]
-  (swap! state
-         (fn [state]
-           (let [taps (state :taps)
-                 bpm (or (state :bpm) 180)
-                 taps (if (seq? taps) taps [])
-                 now (.getTime (js/Date.))
-                 taps (conj (if (seq? taps) taps []) now)
-                 taps (filter #(> % (- now 3000)) taps)
-                 tap-threshold (> (count taps) 3)
-                 tap-diffs (reduce
-                             (fn [[last-tap accum] tap]
-                               [tap
-                                (if (= last-tap tap)
-                                  accum
-                                  (conj accum (- last-tap tap)))])
-                             [now []]
-                             taps)
-                 avg-tap-length (average (second tap-diffs))
-                 bpm (if tap-threshold
-                       (int (/ 60000 avg-tap-length))
-                       bpm)]
-             (assoc state :taps taps :bpm bpm)))))
+  (let [previous-state @state
+        updated-state (swap! state
+                             (fn [state]
+                               (let [taps (state :taps)
+                                     bpm (or (state :bpm) 180)
+                                     taps (if (seq? taps) taps [])
+                                     now (.getTime (js/Date.))
+                                     taps (conj (if (seq? taps) taps []) now)
+                                     taps (filter #(> % (- now 3000)) taps)
+                                     tap-threshold (> (count taps) 3)
+                                     tap-diffs (reduce
+                                                 (fn [[last-tap accum] tap]
+                                                   [tap
+                                                    (if (= last-tap tap)
+                                                      accum
+                                                      (conj accum (- last-tap tap)))])
+                                                 [now []]
+                                                 taps)
+                                     avg-tap-length (average (second tap-diffs))
+                                     bpm (if tap-threshold
+                                           (int (/ 60000 avg-tap-length))
+                                           bpm)]
+                                 (assoc state :taps taps :bpm bpm))))]
+    (when (not= updated-state previous-state)
+      (js/console.log "CHANGED")
+      (update-loop! state ev))))
 
 (defn update-val! [state k ev]
   (swap! state
