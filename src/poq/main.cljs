@@ -118,16 +118,16 @@
         :on-input #(when (not= (aget js/document "activeElement") (.-target %))
                      (update-loop! state nil))
         :value bpm}]]
-     (comment [:div.input-group
-               [:label
-                [:input {:type "range"
-                         :min 0
-                         :max 100
-                         :on-change (partial update-val! state :swing)
-                         :on-mouse-up (partial update-loop! state)
-                         :on-touch-end (partial update-loop! state)
-                         :value swing}]
-                "swing"]])
+     [:div.input-group
+      [:label
+       [:input {:type "range"
+                :min 0
+                :max 50
+                :on-change (partial update-val! state :swing)
+                :on-mouse-up (partial update-loop! state)
+                :on-touch-end (partial update-loop! state)
+                :value swing}]
+       "swing"]]
      [:div.input-group
       (if playing
         [:button {:on-click (partial stop! state)} "stop"]
