@@ -1,15 +1,11 @@
 (ns poq.main
   (:require
-    [cljs.core.async :refer (<! go timeout) :as async]
-    [alandipert.storage-atom :refer [local-storage]]
     [reagent.core :as r]
     [reagent.dom :as rdom]))
 
-(defonce state (local-storage (r/atom {}) :state))
+; TODO: put local-storage on a sub-cursor
+(defonce state (r/atom {}))
 (defonce audio (atom {}))
-
-(defn add-noise [x]
-  (+ (* (- (js/Math.random) 0.5) 0.0001) x))
 
 (defn make-click-track! [context {:keys [track bpm swing]}]
   (tap> {"make-click-track!" [track bpm swing]})
@@ -32,9 +28,10 @@
                 (if
                   (if (= (mod beat 2) 0)
                     (< i 882)
-                    (and (< (- i swing-frames) 882) (> i swing-frames)))
-                  (add-noise -1.5)
-                  (add-noise 1.5))))
+                    (and (< (- i swing-frames) 882)
+                         (> i swing-frames)))
+                  1.0
+                  -0.01)))
         (js/console.log array-buffer)))
     (aset source "loop" true)
     (aset source "buffer" buffer)
@@ -97,7 +94,7 @@
          assoc k (int (-> ev .-target .-value))))
 
 (defn component-main [state]
-  (let [bpm (-> (or (@state :bpm) 180) int (min 170) (max 60))
+  (let [bpm (-> (or (@state :bpm) 180) int (min 240) (max 60))
         swing (-> (or (@state :swing) 0) int (min 100) (max 0))
         playing (@state :playing)]
     [:div
@@ -106,7 +103,7 @@
        [:input
         {:type "range"
          :min 60
-         :max 170
+         :max 240
          :on-change (partial update-val! state :bpm)
          :on-mouse-up (partial update-loop! state)
          :on-touch-end (partial update-loop! state)
@@ -141,9 +138,7 @@
   (rdom/render [component-main state] (js/document.getElementById "app")))
 
 (defn main! []
-  (go
-    (<! (timeout 1000))
-    (swap! state dissoc :playing)
-    (let [audio-context (or (aget js/window "AudioContext") (aget js/window "webkitAudioContext"))]
-      (swap! audio assoc :context (audio-context.)))
-    (reload!)))
+  (swap! state dissoc :playing)
+  (let [audio-context (or (aget js/window "AudioContext") (aget js/window "webkitAudioContext"))]
+    (swap! audio assoc :context (audio-context.)))
+  (reload!))
