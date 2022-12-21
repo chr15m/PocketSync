@@ -4,13 +4,13 @@
     [reagent.dom :as rdom]))
 
 ; TODO: put local-storage on a sub-cursor
-(defonce state (r/atom {}))
+(defonce state (r/atom {:bpm 180 :swing 90}))
 (defonce audio (atom {}))
 
 (defn make-click-track! [context {:keys [track bpm swing]}]
   (tap> {"make-click-track!" [track bpm swing]})
   (let [beat-seconds (/ (/ 60 bpm) 2)
-        beats 16
+        beats 2
         sample-rate (aget context "sampleRate")
         frames-per-beat (int (* beat-seconds sample-rate))
         frame-count (* beats frames-per-beat)
@@ -62,7 +62,7 @@
 
 (defn new-tap [state]
   (let [taps (state :taps)
-        bpm (or (state :bpm) 180)
+        bpm (state :bpm)
         taps (if (seq? taps) taps [])
         now (.getTime (js/Date.))
         taps (conj (if (seq? taps) taps []) now)
@@ -94,8 +94,8 @@
          assoc k (int (-> ev .-target .-value))))
 
 (defn component-main [state]
-  (let [bpm (-> (or (@state :bpm) 180) int (min 240) (max 60))
-        swing (-> (or (@state :swing) 0) int (min 100) (max 0))
+  (let [bpm (-> (@state :bpm) int (min 240) (max 60))
+        swing (-> (@state :swing) int (min 100) (max 0))
         playing (@state :playing)]
     [:div
      [:div.input-group
