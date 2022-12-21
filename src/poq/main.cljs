@@ -1,11 +1,9 @@
 (ns poq.main
   (:require
-    [cljs.core.async :refer (chan put! close! <! go timeout) :as async]
-    [cljs.core.async.interop :refer-macros [<p!]]
+    [cljs.core.async :refer (<! go timeout) :as async]
     [alandipert.storage-atom :refer [local-storage]]
     [reagent.core :as r]
-    [reagent.dom :as rdom]
-    [shadow.resource :as rc]))
+    [reagent.dom :as rdom]))
 
 (defonce state (local-storage (r/atom {}) :state))
 (defonce audio (atom {}))
@@ -29,8 +27,6 @@
       (let [array-buffer (.getChannelData buffer b)]
         (js/console.log (clj->js (range beats)) beat-seconds sample-rate frames-per-beat)
         (doseq [beat (range beats) i (range frames-per-beat)]
-          (let [odd-beat (boolean (mod beat 2))])
-          ;(js/console.log (< i 882))
           (aset array-buffer
                 (+ i (* beat frames-per-beat))
                 (if
@@ -50,7 +46,7 @@
     (tap> "Done generating.")
     source))
 
-(defn update-loop! [state ev]
+(defn update-loop! [state _ev]
   (when (@state :playing)
     (swap! state #(-> % (assoc :track (make-click-track! (@audio :context) %))))))
 
@@ -58,7 +54,7 @@
   (swap! state assoc :playing true)
   (update-loop! state ev))
 
-(defn stop! [state ev]
+(defn stop! [state _ev]
   (swap! state dissoc :playing)
   (let [track (@state :track)]
     (when track
@@ -67,30 +63,31 @@
 (defn average [coll]
   (/ (reduce + coll) (count coll)))
 
+(defn new-tap [state]
+  (let [taps (state :taps)
+        bpm (or (state :bpm) 180)
+        taps (if (seq? taps) taps [])
+        now (.getTime (js/Date.))
+        taps (conj (if (seq? taps) taps []) now)
+        taps (filter #(> % (- now 3000)) taps)
+        tap-threshold (> (count taps) 3)
+        tap-diffs (reduce
+                    (fn [[last-tap accum] tap]
+                      [tap
+                       (if (= last-tap tap)
+                         accum
+                         (conj accum (- last-tap tap)))])
+                    [now []]
+                    taps)
+        avg-tap-length (average (second tap-diffs))
+        bpm (if tap-threshold
+              (int (/ 60000 avg-tap-length))
+              bpm)]
+    (assoc state :taps taps :bpm bpm)))
+
 (defn tap! [state ev]
   (let [previous-state @state
-        updated-state (swap! state
-                             (fn [state]
-                               (let [taps (state :taps)
-                                     bpm (or (state :bpm) 180)
-                                     taps (if (seq? taps) taps [])
-                                     now (.getTime (js/Date.))
-                                     taps (conj (if (seq? taps) taps []) now)
-                                     taps (filter #(> % (- now 3000)) taps)
-                                     tap-threshold (> (count taps) 3)
-                                     tap-diffs (reduce
-                                                 (fn [[last-tap accum] tap]
-                                                   [tap
-                                                    (if (= last-tap tap)
-                                                      accum
-                                                      (conj accum (- last-tap tap)))])
-                                                 [now []]
-                                                 taps)
-                                     avg-tap-length (average (second tap-diffs))
-                                     bpm (if tap-threshold
-                                           (int (/ 60000 avg-tap-length))
-                                           bpm)]
-                                 (assoc state :taps taps :bpm bpm))))]
+        updated-state (swap! state new-tap)]
     (when (not= updated-state previous-state)
       (js/console.log "CHANGED")
       (update-loop! state ev))))
@@ -120,7 +117,7 @@
        {:type "number"
         :on-change (partial update-val! state :bpm)
         :on-blur (partial update-loop! state)
-        :on-key-up #(if (= (.-keyCode %) 13) (-> % .-target .blur))
+        :on-key-up #(when (= (.-keyCode %) 13) (-> % .-target .blur))
         :on-input #(when (not= (aget js/document "activeElement") (.-target %))
                      (update-loop! state nil))
         :value bpm}]]
