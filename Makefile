@@ -10,7 +10,7 @@ node_modules: package.json
 .PHONY: watch clean
 
 watch: node_modules
-	npx shadow-cljs watch app 
+	npm run watch
 
 repl: node_modules
 	npx shadow-cljs cljs-repl app

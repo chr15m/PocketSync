@@ -5,5 +5,14 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "shadow-cljs": "^2.20.15"
+  },
+  "devDependencies": {
+    "browser-sync": "^2.27.11",
+    "concurrently": "^7.6.0"
+  },
+  "scripts": {
+    "watch-cljs": "shadow-cljs watch app",
+    "serve": "browser-sync start --server public --files public --no-open --port 8000",
+    "watch": "concurrently 'npm:watch-cljs' 'npm:serve'"
   }
 }
