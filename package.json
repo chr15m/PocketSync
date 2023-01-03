@@ -8,7 +8,8 @@
   },
   "devDependencies": {
     "browser-sync": "^2.27.11",
-    "concurrently": "^7.6.0"
+    "concurrently": "^7.6.0",
+    "storage-atom": "github:chr15m/storage-atom#ea2ba37"
   },
   "scripts": {
     "watch-cljs": "shadow-cljs watch app",

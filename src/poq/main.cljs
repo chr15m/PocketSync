@@ -1,13 +1,28 @@
 (ns poq.main
   (:require
     [reagent.core :as r]
-    [reagent.dom :as rdom]))
+    [reagent.dom :as rdom]
+    [alandipert.storage-atom :refer [local-storage]]))
 
-; TODO: put local-storage on a sub-cursor
-(defonce state (r/atom {:bpm 180 :swing 90}))
-(defonce audio (atom {}))
+(def initial-state {:bpm 180 ; persisted
+                    :swing 0 ; persisted
+                    :playing false
+                    :taps []
+                    :track nil
+                    :context nil})
 
-(defn make-click-track! [context {:keys [track bpm swing]}]
+(def local-storage-keys [:bpm :swing])
+
+(defonce state (local-storage (r/atom initial-state)
+                              :pocketsync-settings
+                              (fn [*state]
+                                (print "pre" *state)
+                                (select-keys *state local-storage-keys))
+                              (fn [*state *old-state]
+                                (print "post" *state *old-state)
+                                (merge initial-state *state))))
+
+(defn make-click-track! [{:keys [context track bpm swing]}]
   (tap> {"make-click-track!" [track bpm swing]})
   (let [beat-seconds (/ (/ 60 bpm) 2)
         beats 2
@@ -44,25 +59,26 @@
     source))
 
 (defn update-loop! [state _ev]
-  (when (@state :playing)
-    (swap! state #(-> % (assoc :track (make-click-track! (@audio :context) %))))))
+  (let [{:keys [playing]} @state]
+    (when playing
+      (swap! state #(-> % (assoc :track (make-click-track! %)))))))
 
 (defn play! [state ev]
   (swap! state assoc :playing true)
   (update-loop! state ev))
 
 (defn stop! [state _ev]
-  (swap! state dissoc :playing)
   (let [track (@state :track)]
+    (swap! state dissoc :playing :track)
     (when track
       (.stop track))))
 
 (defn average [coll]
   (/ (reduce + coll) (count coll)))
 
-(defn new-tap [state]
-  (let [taps (state :taps)
-        bpm (state :bpm)
+(defn new-tap [*state]
+  (let [taps (-> *state :taps)
+        bpm (-> *state :bpm)
         taps (if (seq? taps) taps [])
         now (.getTime (js/Date.))
         taps (conj (if (seq? taps) taps []) now)
@@ -80,7 +96,7 @@
         bpm (if tap-threshold
               (int (/ 60000 avg-tap-length))
               bpm)]
-    (assoc state :taps taps :bpm bpm)))
+    (assoc *state :bpm bpm :taps taps)))
 
 (defn tap! [state ev]
   (let [previous-state @state
@@ -91,11 +107,11 @@
 
 (defn update-val! [state k ev]
   (swap! state
-         assoc k (int (-> ev .-target .-value))))
+         assoc-in k (int (-> ev .-target .-value))))
 
 (defn component-main [state]
-  (let [bpm (-> (@state :bpm) int (min 240) (max 60))
-        swing (-> (@state :swing) int (min 100) (max 0))
+  (let [bpm (-> @state :bpm int (min 240) (max 60))
+        swing (-> @state :swing int (min 100) (max 0))
         playing (@state :playing)]
     [:div
      [:div.input-group
@@ -104,7 +120,7 @@
         {:type "range"
          :min 60
          :max 240
-         :on-change (partial update-val! state :bpm)
+         :on-change (partial update-val! state [:bpm])
          :on-mouse-up (partial update-loop! state)
          :on-touch-end (partial update-loop! state)
          :value bpm}]
@@ -112,7 +128,7 @@
      [:div.input-group
       [:input#bpm
        {:type "number"
-        :on-change (partial update-val! state :bpm)
+        :on-change (partial update-val! state [:bpm])
         :on-blur (partial update-loop! state)
         :on-key-up #(when (= (.-keyCode %) 13) (-> % .-target .blur))
         :on-input #(when (not= (aget js/document "activeElement") (.-target %))
@@ -122,8 +138,8 @@
       [:label
        [:input {:type "range"
                 :min 0
-                :max 50
-                :on-change (partial update-val! state :swing)
+                :max 75
+                :on-change (partial update-val! state [:swing])
                 :on-mouse-up (partial update-loop! state)
                 :on-touch-end (partial update-loop! state)
                 :value swing}]
@@ -140,5 +156,5 @@
 (defn main! []
   (swap! state dissoc :playing)
   (let [audio-context (or (aget js/window "AudioContext") (aget js/window "webkitAudioContext"))]
-    (swap! audio assoc :context (audio-context.)))
+    (swap! state assoc :context (audio-context.)))
   (reload!))
