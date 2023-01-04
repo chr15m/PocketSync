@@ -1,5 +1,6 @@
 (ns poq.main
   (:require
+    [shadow.resource :as rc]
     [reagent.core :as r]
     [reagent.dom :as rdom]
     [alandipert.storage-atom :refer [local-storage]]
@@ -16,6 +17,9 @@
 (def bpm-max 240)
 
 (def local-storage-keys [:bpm :swing])
+
+(def buttons {:play (rc/inline "sprites/button-play.svg")
+              :stop (rc/inline "sprites/button-stop.svg")})
 
 (defonce state (local-storage (r/atom initial-state)
                               :pocketsync-settings
@@ -139,7 +143,11 @@
      [:button#tap {:on-click #(tap! state)} "tap"]
      [:div.input-group
       [component-slider :swing swing 0 75]]
-     [:button#play {:on-click #(if playing (stop! state) (play! state))} "stop"]]))
+     [:div.input-group
+      [:span#play {:on-click #(if playing (stop! state) (play! state))
+                   :ref (fn [el]
+                          (when el
+                            (aset el "innerHTML" (if playing (:stop buttons) (:play buttons)))))}]]]))
 
 (defn reload! {:dev/after-load true} []
   (rdom/render [component-main state] (js/document.getElementById "app")))

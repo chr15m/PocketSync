@@ -3,7 +3,9 @@
  */
 
 :root {
-  --color-primary: #F7F1ED;
+  --color-1: #F7F1ED;
+  --color-2: #444349;
+  --color-3: #e7ad1b;
 }
 
 * {
@@ -17,14 +19,14 @@
 
 svg text {
   font-family: "Courier", monospace;
-  fill: var(--color-primary);
+  fill: var(--color-1);
   stroke: transparent;
   stroke-width: 2px;
 }
 
 svg circle, svg line {
   stroke-width: 2px;
-  stroke: var(--color-primary);
+  stroke: var(--color-1);
   fill: "transparent";
 }
 
@@ -37,7 +39,7 @@ html {
 }
 
 body {
-  color: var(--color-primary);
+  color: var(--color-1);
   margin: 0 auto;
   line-height: 1.5;
   width: 100%;
@@ -67,8 +69,8 @@ h1, h2, strong {
 }
 
 code, pre {
-  background: #000;
-  color: var(--color-primary);
+  background: var(--color-2);
+  color: var(--color-1);
 }
 
 code {
@@ -77,17 +79,17 @@ code {
 }
 
 pre {
-  border-left: 2px solid #000;
+  border-left: 2px solid var(--color-2);
   padding: 1em;
 }
 
 a {
-  color: #000;
+  color: var(--color-3);
   text-decoration: underline;
 }
 
 blockquote, q {
-  border-left: solid 4px #000;
+  border-left: solid 2px var(--color-2);
   font-style: italic;
   margin: 0 0 2em 0;
   padding: 0.5em 0 0.5em 2em;
@@ -100,14 +102,14 @@ blockquote::before, blockquote::after, q::before, q::after {
 
 input {
   -webkit-appearance: none;
-  border: 1px solid black;
-  background-color: var(--color-primary);
-  border-radius: 0px;
+  border: 2px solid var(--color-2);
+  background-color: var(--color-1);
+  border-radius: 6px;
 }
 
 button {
-  background-color: var(--color-primary);
-  color: #444349;
+  background-color: var(--color-1);
+  color: var(--color-2);
   border: none;
   min-width: 48px;
   height: 48px;
@@ -120,7 +122,7 @@ input[type="range"] {
   height: 48px;
   width: 300px;
   background-color: transparent;
-  border: 2px solid var(--color-primary);
+  border: 2px solid var(--color-1);
   margin: 0px;
   border-radius: 6px;
 }
@@ -130,7 +132,7 @@ input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   width: 48px;
   height: 48px;
-  background: var(--color-primary);
+  background: var(--color-1);
   border: 0px;
   cursor: pointer;
 }
@@ -138,7 +140,7 @@ input[type="range"]::-webkit-slider-thumb {
 input[type="range"]::-moz-range-thumb {
   width: 46px;
   height: 46px;
-  background: var(--color-primary);
+  background: var(--color-1);
   border: 0px;
   cursor: pointer;
   border-radius: 0px;
@@ -224,7 +226,14 @@ button#tap:active {
   }
 }
 
-button#play {
-  bottom: 0px;
-  right: 0px;
+span#play {
+}
+
+span#play svg {
+  background-color: var(--color-1);
+  border-radius: 64px;
+  margin: 0px;
+  padding: 0px;
+  width: 1.5cm;
+  height: 1.5cm;
 }
