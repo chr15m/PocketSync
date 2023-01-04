@@ -106,11 +106,12 @@ input {
 }
 
 button {
-  background-color: black;
-  color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: #444349;
   border: none;
-  min-width: 10ch;
+  min-width: 48px;
   height: 48px;
+  border-radius: 6px;
 }
 
 input[type="range"] {
@@ -118,9 +119,10 @@ input[type="range"] {
   appearance: none;
   height: 48px;
   width: 300px;
-  background-color: var(--color-primary);
-  border: 1px solid black;
+  background-color: transparent;
+  border: 2px solid var(--color-primary);
   margin: 0px;
+  border-radius: 6px;
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -128,16 +130,16 @@ input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   width: 48px;
   height: 48px;
-  background: black;
-  border: 1px solid black;
+  background: var(--color-primary);
+  border: 0px;
   cursor: pointer;
 }
 
 input[type="range"]::-moz-range-thumb {
   width: 46px;
   height: 46px;
-  background: black;
-  border: 1px solid black;
+  background: var(--color-primary);
+  border: 0px;
   cursor: pointer;
   border-radius: 0px;
 }
@@ -188,12 +190,19 @@ label {
 }
 
 #tempo {
-  width: 100%;
-  stroke: var(--color-primary);
+  font-size: 1.5em;
 }
 
-button#tap {
-  position: absolute;
-  width: 2ch;
-  background: none;
+label > span:first-child {
+  float: left;
+  margin-bottom: -2em;
+}
+
+label > span.right:first-child {
+  float: right;
+}
+
+button#play {
+  bottom: 0px;
+  right: 0px;
 }

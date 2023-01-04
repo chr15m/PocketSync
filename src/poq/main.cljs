@@ -112,53 +112,34 @@
 (defn get-bpm [*state]
   (-> *state :bpm int (min bpm-max) (max bpm-min)))
 
-(defn component-bpm-dial [state]
-  (let [touchstate (atom nil)]
-    (fn []
-      (let [bpm (get-bpm @state)]
-        [:svg#tempo {:viewBox "-100 -100 200 200"
-                     :on-mouse-down #(reset! touchstate true)
-                     :on-mouse-out #(reset! touchstate false)
-                     :on-mouse-up #(reset! touchstate false)
-                     :on-mouse-move #(when @touchstate (js/console.log %))}
-         [:text {:x 0 :y -40 :text-anchor "middle" :dominant-baseline "middle"} bpm]
-         [:g {:transform (str "rotate(" (bpm-to-degrees bpm) " 0 0)")}
-          [:g {:transform "translate(85 0)"}
-           [:circle {:cx 0 :cy 0 :r 10 :stroke-width "2px"}]]]
-         [:circle {:cx 0 :cy 0 :r 85 :fill "transparent" :path-length 5}]
-         (for [b (range bpm-min (inc bpm-max) 10)]
-           [:g {:transform (str "rotate(" (bpm-to-degrees b) " 0 0)")
-                :key (str "tick-" b)}
-            [:line {:x1 85 :y1 0 :x2 90 :y2 0}]])]))))
+(defn get-swing [*state]
+  (-> *state :swing int (min 100) (max 0)))
+
+(defn component-slider [k value min-val max-val]
+  (let [midpoint (/ (+ min-val max-val) 2)]
+    [:label
+     [:span (when (< value midpoint) {:class "right"}) (name k)]
+     [:input
+      {:type "range"
+       :min min-val
+       :max max-val
+       :on-change #(update-val! state [k] %)
+       :on-mouse-up #(update-loop! state)
+       :on-touch-end #(update-loop! state)
+       :value value}]]))
 
 (defn component-main [state]
   (let [bpm (get-bpm @state)
-        swing (-> @state :swing int (min 100) (max 0))
+        swing (get-swing @state)
         playing (@state :playing)]
     [:div
+     [:div#tempo.input-group bpm]
      [:div.input-group
-      [:label
-       [:input
-        {:type "range"
-         :min bpm-min
-         :max bpm-max
-         :on-change (partial update-val! state [:bpm])
-         :on-mouse-up #(update-loop! state)
-         :on-touch-end #(update-loop! state)
-         :value bpm}]]]
-     [component-bpm-dial state]
+      [component-slider :bpm bpm bpm-min bpm-max]]
      [:button#tap {:on-click #(tap! state)} "tap"]
      [:div.input-group
-      [:label
-       [:input {:type "range"
-                :min 0
-                :max 75
-                :on-change (partial update-val! state [:swing])
-                :on-mouse-up #(update-loop! state)
-                :on-touch-end #(update-loop! state)
-                :value swing}]]]
-     [:div.input-group
-      [:button {:on-click #(if playing (stop! state) (play! state))} "stop"]]]))
+      [component-slider :swing swing 0 75]]
+     [:button#play {:on-click #(if playing (stop! state) (play! state))} "stop"]]))
 
 (defn reload! {:dev/after-load true} []
   (rdom/render [component-main state] (js/document.getElementById "app")))
