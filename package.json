@@ -13,8 +13,6 @@
     "storage-atom": "github:chr15m/storage-atom#ea2ba37"
   },
   "scripts": {
-    "watch-cljs": "shadow-cljs watch app",
-    "serve": "browser-sync start --server public --files public --no-open --port 8000",
-    "watch": "concurrently 'npm:watch-cljs' 'npm:serve'"
+    "watch": "shadow-cljs watch app"
   }
 }
