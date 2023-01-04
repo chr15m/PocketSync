@@ -16,10 +16,11 @@ html {
   height: 100%;
   margin: 0px;
   padding: 0px;
+  background-image: url("stardust.png");
 }
 
 body {
-  color: #111;
+  color: #F7F1ED;
   margin: 0 auto;
   line-height: 1.5;
   width: 100%;
@@ -134,7 +135,8 @@ label {
 
 #loading-image {
   margin: auto;
-  width: 128px;
+  width: 400px;
+  max-width: 90%;
 }
 
 #app {
