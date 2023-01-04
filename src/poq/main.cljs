@@ -2,13 +2,14 @@
   (:require
     [reagent.core :as r]
     [reagent.dom :as rdom]
-    [alandipert.storage-atom :refer [local-storage]]))
+    [alandipert.storage-atom :refer [local-storage]]
+    [dopeloop.main :refer [audio-context seamless-loop-audio-buffer! stop-source!]]))
 
 (def initial-state {:bpm 180 ; persisted
                     :swing 0 ; persisted
                     :playing false
                     :taps []
-                    :track nil
+                    :audio-source nil
                     :context nil})
 
 (def local-storage-keys [:bpm :swing])
@@ -22,21 +23,16 @@
                                 (print "post" *state *old-state)
                                 (merge initial-state *state))))
 
-(defn make-click-track! [{:keys [context track bpm swing]}]
-  (tap> {"make-click-track!" [track bpm swing]})
+(defn make-click-track-audio-buffer [{:keys [context bpm swing] :as *state}]
   (let [beat-seconds (/ (/ 60 bpm) 2)
         beats 2
         sample-rate (aget context "sampleRate")
         frames-per-beat (int (* beat-seconds sample-rate))
         frame-count (* beats frames-per-beat)
         swing-frames (-> swing (/ 100) (* frames-per-beat))
-        buffer (.createBuffer context 2 frame-count sample-rate)
-        source (.createBufferSource context)]
-    (tap> {"sample-rate" sample-rate})
-    (tap> {"frames-per-beat" frames-per-beat})
+        buffer (.createBuffer context 2 frame-count sample-rate)]
     (doseq [b [0]]
       (let [array-buffer (.getChannelData buffer b)]
-        (js/console.log (clj->js (range beats)) beat-seconds sample-rate frames-per-beat)
         (doseq [beat (range beats) i (range frames-per-beat)]
           (aset array-buffer
                 (+ i (* beat frames-per-beat))
@@ -46,32 +42,27 @@
                     (and (< (- i swing-frames) 882)
                          (> i swing-frames)))
                   1.0
-                  -0.01)))
-        (js/console.log array-buffer)))
-    (aset source "loop" true)
-    (aset source "buffer" buffer)
-    (.connect source (aget context "destination"))
-    (.start source)
-    (when track
-      (tap> {"Stopping old track." track})
-      (.stop track))
-    (tap> "Done generating.")
-    source))
+                  -0.01)))))
+    (assoc *state :audio-buffer buffer)))
+
+(defn play-click-track! [{:keys [context audio-buffer audio-source] :as *state}]
+  (assoc *state :audio-source
+         (seamless-loop-audio-buffer! context audio-buffer audio-source)))
 
 (defn update-loop! [state _ev]
   (let [{:keys [playing]} @state]
     (when playing
-      (swap! state #(-> % (assoc :track (make-click-track! %)))))))
+      (swap! state
+             #(-> % make-click-track-audio-buffer play-click-track!)))))
 
 (defn play! [state ev]
   (swap! state assoc :playing true)
   (update-loop! state ev))
 
 (defn stop! [state _ev]
-  (let [track (@state :track)]
-    (swap! state dissoc :playing :track)
-    (when track
-      (.stop track))))
+  (let [click-track-audio-source (@state :audio-source)]
+    (swap! state dissoc :playing :audio-source :audio-buffer)
+    (stop-source! click-track-audio-source)))
 
 (defn average [coll]
   (/ (reduce + coll) (count coll)))
@@ -150,11 +141,9 @@
         [:button {:on-click (partial play! state)} "play"])
       [:button {:on-click (partial tap! state)} "tap"]]]))
 
-(defn reload! []
+(defn reload! {:dev/after-load true} []
   (rdom/render [component-main state] (js/document.getElementById "app")))
 
 (defn main! []
-  (swap! state dissoc :playing)
-  (let [audio-context (or (aget js/window "AudioContext") (aget js/window "webkitAudioContext"))]
-    (swap! state assoc :context (audio-context.)))
+  (swap! state assoc :context (audio-context.))
   (reload!))

@@ -2,13 +2,14 @@
   "name": "PocketSync",
   "version": "0.0.1",
   "dependencies": {
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "shadow-cljs": "^2.20.15"
+    "cljs-dopeloop": "github:chr15m/cljs-dopeloop#9852aee"
   },
   "devDependencies": {
     "browser-sync": "^2.27.11",
     "concurrently": "^7.6.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "shadow-cljs": "^2.20.15",
     "storage-atom": "github:chr15m/storage-atom#ea2ba37"
   },
   "scripts": {

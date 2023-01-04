@@ -1,11 +1,8 @@
-{:source-paths ["src" "node_modules/storage-atom/src"]
- :dependencies [[reagent "1.1.0"]
-                [applied-science/js-interop "0.2.7"]
-                [funcool/promesa "6.0.2"]]
- :dev-http {8000 "public/"}
+{:source-paths ["src" "node_modules/storage-atom/src" "node_modules/cljs-dopeloop/src"]
+ :dependencies [[reagent "1.1.0"]]
+ :dev-http {8000 "public"}
  :builds {:app {:target :browser
                 :output-dir "public/js"
                 :asset-path "js"
                 :modules {:main {:init-fn poq.main/main!}}
-                :devtools {:after-load poq.main/reload!}
                 :release {:output-dir "build/js"}}}}

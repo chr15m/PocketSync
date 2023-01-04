@@ -3,3 +3,4 @@ node_modules
 .shadow-cljs
 public/js
 build
+pnpm-lock.yaml
