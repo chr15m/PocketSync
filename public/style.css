@@ -2,6 +2,10 @@
  * https://jgthms.com/web-design-in-4-minutes/ 
  */
 
+:root {
+  --color-primary: #F7F1ED;
+}
+
 * {
   box-sizing: border-box;
   font-family: "Courier", monospace;
@@ -30,10 +34,6 @@ html {
   margin: 0px;
   padding: 0px;
   background-image: url("stardust.png");
-}
-
-:root {
-  --color-primary: #F7F1ED;
 }
 
 body {
@@ -200,6 +200,28 @@ label > span:first-child {
 
 label > span.right:first-child {
   float: right;
+}
+
+button#tap {
+  box-shadow: 0 0 0px transparent;
+}
+
+button#tap:active {
+  animation: 250ms forwards tap-shadow;
+}
+
+@keyframes tap-shadow {
+  0% {
+    box-shadow: 0 0 0px transparent;
+  }
+
+  50% {
+    box-shadow: 0px 10px 10px white, 0px -10px 10px white;
+  }
+
+  100% {
+    box-shadow: 0px 20px 10px rgba(255, 255, 255, 0), 0px -20px 10px rgba(255, 255, 255, 0);
+  }
 }
 
 button#play {
