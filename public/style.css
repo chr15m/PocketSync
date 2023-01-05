@@ -161,6 +161,19 @@ label {
   margin: 0px;
 }
 
+span.icon {
+  margin: 0px;
+  padding: 0px;
+}
+
+span.icon svg {
+  fill: var(--color-1);
+  width: 48px;
+  height: 48px;
+  margin: 0px;
+  padding: 0px;
+}
+
 /*** specific ***/
 
 #loading-image {
@@ -194,6 +207,17 @@ label {
   align-self: center;
 }
 
+#app > div > :first-child {
+  flex-grow: 1;
+  justify-content: end;
+}
+
+#app > div > :last-child {
+  flex-grow: 1;
+  justify-content: end;
+  align-items: center;
+}
+
 .input-group {
   display: flex;
   justify-content: center;
@@ -205,8 +229,13 @@ label {
   user-select: none;
 }
 
+#menu {
+  margin-top: 8px;
+}
+
 #tempo {
   justify-content: space-between;
+  align-items: center;
   padding: 0px;
 }
 
@@ -231,6 +260,7 @@ label {
   min-width: 3.25ch;
   padding: 0px;
   flex-grow: 1;
+  font-size: 1.5em;
 }
 
 #tempo button {

@@ -11,7 +11,8 @@
                     :playing false
                     :taps []
                     :audio-source nil
-                    :context nil})
+                    :context nil
+                    :show-menu false})
 
 (def bpm-min 60)
 (def bpm-max 240)
@@ -19,7 +20,9 @@
 (def local-storage-keys [:bpm :swing])
 
 (def buttons {:play (rc/inline "sprites/button-play.svg")
-              :stop (rc/inline "sprites/button-stop.svg")})
+              :stop (rc/inline "sprites/button-stop.svg")
+              :bars (rc/inline "sprites/bars.svg")
+              :exex (rc/inline "sprites/times.svg")})
 
 (defonce state (local-storage (r/atom initial-state)
                               :pocketsync-settings
@@ -107,17 +110,18 @@
   (swap! state
          assoc-in k (if (number? ev) ev (int (-> ev .-target .-value)))))
 
-(defn bpm-to-degrees [bpm]
-  (let [normalized (-> bpm (- bpm-min) (/ (- bpm-max bpm-min)))]
-    (-> normalized
-      (* 350)
-      (- 85))))
+(defn set-bpm! [state v]
+  (update-val! state [:bpm] v)
+  (update-loop! state))
 
 (defn get-bpm [*state]
   (-> *state :bpm int (min bpm-max) (max bpm-min)))
 
 (defn get-swing [*state]
   (-> *state :swing int (min 100) (max 0)))
+
+(defn component-icon [svg]
+  [:span.icon {:ref (fn [el] (when el (aset el "innerHTML" svg)))}])
 
 (defn component-slider [k value min-val max-val]
   (let [midpoint (/ (+ min-val max-val) 2)]
@@ -132,15 +136,23 @@
        :on-touch-end #(update-loop! state)
        :value value}]]))
 
-(defn set-bpm! [state v]
-  (update-val! state [:bpm] v)
-  (update-loop! state))
+(defn component-menu-toggle [state]
+  [:div#menu.input-group
+   [:span {:on-click #(swap! state update :show-menu not)}
+    [component-icon (if (:show-menu @state) (:exex buttons) (:bars buttons))]]])
+
+(defn component-help [state]
+  [:div
+   [component-menu-toggle state]
+   [:div#help "Hello goose hello hello yes goose hello hello yes goose hello hello yes goose hello hello yes goose."]
+   [:div]])
 
 (defn component-main [state]
   (let [bpm (get-bpm @state)
         swing (get-swing @state)
         playing (@state :playing)]
     [:div
+     [component-menu-toggle state]
      [:div#tempo.input-group
       [:button {:disabled (< (/ bpm 2) bpm-min)
                 :on-click #(set-bpm! state (/ bpm 2))} "½"]
@@ -159,12 +171,17 @@
       [component-slider :swing swing 0 75]]
      [:div.input-group
       [:button#play {:on-click #(if playing (stop! state) (play! state))
-                   :ref (fn [el]
-                          (when el
-                            (aset el "innerHTML" (if playing (:stop buttons) (:play buttons)))))}]]]))
+                     :ref (fn [el]
+                            (when el
+                              (aset el "innerHTML" (if playing (:stop buttons) (:play buttons)))))}]]]))
+
+(defn component-pages [state]
+  (if (:show-menu @state)
+    [component-help state]
+    [component-main state]))
 
 (defn reload! {:dev/after-load true} []
-  (rdom/render [component-main state] (js/document.getElementById "app")))
+  (rdom/render [component-pages state] (js/document.getElementById "app")))
 
 (defn main! []
   (swap! state assoc :context (audio-context.))
