@@ -4,6 +4,7 @@
 
 :root {
   --color-1: #F7F1ED;
+  --color-1-shadow: #97928e;
   --color-2: #444349;
   --color-3: #e7ad1b;
 }
@@ -108,12 +109,18 @@ input {
 }
 
 button {
+  margin: 0px;
   background-color: var(--color-1);
   color: var(--color-2);
-  border: none;
-  min-width: 48px;
-  height: 48px;
+  border: 2px solid var(--color-1-shadow);
   border-radius: 6px;
+  border: none;
+  border-bottom: 4px solid var(--color-1-shadow);
+}
+
+button:active {
+  margin-top: 4px;
+  border-bottom: 0px solid var(--color-1-shadow);
 }
 
 input[type="range"] {
@@ -226,14 +233,21 @@ button#tap:active {
   }
 }
 
-span#play {
+button#play {
+  border-radius: 64px;
+  width: 128px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-span#play svg {
-  background-color: var(--color-1);
-  border-radius: 64px;
+button#play:active {
+  height: 60px;
+}
+
+button#play svg {
+  height: 48px;
   margin: 0px;
   padding: 0px;
-  width: 1.5cm;
-  height: 1.5cm;
 }

@@ -144,7 +144,7 @@
      [:div.input-group
       [component-slider :swing swing 0 75]]
      [:div.input-group
-      [:span#play {:on-click #(if playing (stop! state) (play! state))
+      [:button#play {:on-click #(if playing (stop! state) (play! state))
                    :ref (fn [el]
                           (when el
                             (aset el "innerHTML" (if playing (:stop buttons) (:play buttons)))))}]]]))
