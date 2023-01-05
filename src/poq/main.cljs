@@ -105,7 +105,7 @@
 
 (defn update-val! [state k ev]
   (swap! state
-         assoc-in k (int (-> ev .-target .-value))))
+         assoc-in k (if (number? ev) ev (int (-> ev .-target .-value)))))
 
 (defn bpm-to-degrees [bpm]
   (let [normalized (-> bpm (- bpm-min) (/ (- bpm-max bpm-min)))]
@@ -132,12 +132,25 @@
        :on-touch-end #(update-loop! state)
        :value value}]]))
 
+(defn set-bpm! [state v]
+  (update-val! state [:bpm] v)
+  (update-loop! state))
+
 (defn component-main [state]
   (let [bpm (get-bpm @state)
         swing (get-swing @state)
         playing (@state :playing)]
-    [:div
-     [:div#tempo.input-group bpm]
+    [:div#ui
+     [:div#tempo.input-group
+      [:button {:disabled (< (/ bpm 2) bpm-min)
+                :on-click #(set-bpm! state (/ bpm 2))} "½"]
+      [:span {:class (when (<= bpm bpm-min) "disabled")
+              :on-click #(set-bpm! state (- bpm 1))} "-"]
+      [:span#bpm bpm]
+      [:span {:class (when (>= bpm bpm-max) "disabled")
+              :on-click #(set-bpm! state (+ bpm 1))} "+"]
+      [:button {:disabled (> (* bpm 2) bpm-max)
+                :on-click #(set-bpm! state (* bpm 2))} "2"]]
      [:div.input-group
       [component-slider :bpm bpm bpm-min bpm-max]]
      [:button#tap {:on-click #(tap! state)} "tap"]

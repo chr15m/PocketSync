@@ -196,10 +196,42 @@ label {
   display: flex;
   justify-content: center;
   margin: 0em 0px;
+
 }
 
 #tempo {
+  justify-content: space-between;
+  padding: 0px;
+}
+
+#tempo * {
+}
+
+#tempo span {
   font-size: 1.5em;
+  line-height: 1.25em;
+  padding: 0px;
+  margin: 0px;
+  padding: 0px 0.75ch;
+}
+
+#tempo span.disabled {
+  opacity: 0.5;
+}
+
+#tempo span#bpm {
+  text-align: center;
+  min-width: 3.25ch;
+  padding: 0px;
+  flex-grow: 1;
+}
+
+#tempo button {
+  min-width: 3.25ch;
+}
+
+#tempo button:disabled {
+  opacity: 0.5;
 }
 
 label > span:first-child {
