@@ -140,12 +140,12 @@
   (let [bpm (get-bpm @state)
         swing (get-swing @state)
         playing (@state :playing)]
-    [:div#ui
+    [:div
      [:div#tempo.input-group
       [:button {:disabled (< (/ bpm 2) bpm-min)
                 :on-click #(set-bpm! state (/ bpm 2))} "½"]
       [:span {:class (when (<= bpm bpm-min) "disabled")
-              :on-click #(set-bpm! state (- bpm 1))} "-"]
+              :on-click #(set-bpm! state (- bpm 1))} "–"]
       [:span#bpm bpm]
       [:span {:class (when (>= bpm bpm-max) "disabled")
               :on-click #(set-bpm! state (+ bpm 1))} "+"]
