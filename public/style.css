@@ -116,6 +116,7 @@ button {
   border-radius: 6px;
   border: none;
   border-bottom: 4px solid var(--color-1-shadow);
+  cursor: pointer;
 }
 
 button:active {
@@ -132,6 +133,7 @@ input[type="range"] {
   border: 2px solid var(--color-1);
   margin: 0px;
   border-radius: 6px;
+  cursor: pointer;
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -195,8 +197,12 @@ label {
 .input-group {
   display: flex;
   justify-content: center;
-  margin: 0em 0px;
-
+  margin: 0.1em 0px;
+  padding: 0px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 #tempo {
@@ -213,13 +219,14 @@ label {
   padding: 0px;
   margin: 0px;
   padding: 0px 0.75ch;
+  cursor: pointer;
 }
 
 #tempo span.disabled {
   opacity: 0.5;
 }
 
-#tempo span#bpm {
+#tempo #bpm {
   text-align: center;
   min-width: 3.25ch;
   padding: 0px;
@@ -245,6 +252,7 @@ label > span.right:first-child {
 
 button#tap {
   box-shadow: 0 0 0px transparent;
+  width: 100%;
 }
 
 button#tap:active {

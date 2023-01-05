@@ -146,14 +146,15 @@
                 :on-click #(set-bpm! state (/ bpm 2))} "½"]
       [:span {:class (when (<= bpm bpm-min) "disabled")
               :on-click #(set-bpm! state (- bpm 1))} "–"]
-      [:span#bpm bpm]
+      [:div#bpm bpm]
       [:span {:class (when (>= bpm bpm-max) "disabled")
               :on-click #(set-bpm! state (+ bpm 1))} "+"]
       [:button {:disabled (> (* bpm 2) bpm-max)
                 :on-click #(set-bpm! state (* bpm 2))} "2"]]
      [:div.input-group
       [component-slider :bpm bpm bpm-min bpm-max]]
-     [:button#tap {:on-click #(tap! state)} "tap"]
+     [:div.input-group
+      [:button#tap {:on-click #(tap! state)} "tap"]]
      [:div.input-group
       [component-slider :swing swing 0 75]]
      [:div.input-group
