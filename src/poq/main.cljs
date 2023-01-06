@@ -142,38 +142,58 @@
     [component-icon (if (:show-menu @state) (:exex buttons) (:bars buttons))]]])
 
 (defn component-help [state]
-  [:div
-   [component-menu-toggle state]
-   [:div#help "Hello goose hello hello yes goose hello hello yes goose hello hello yes goose hello hello yes goose."]
+  [:div#help
+   [:div
+    [component-menu-toggle state]
+    [:div
+     [:p [:a {:href "https://dopeloop.ai" :target "_BLANK"} [:button "Get more apps"]]]
+     [:h3 "Help"]
+     [:p "Use this app with a pocket operator device."]
+     [:p "Plug a 3.5mm stereo cable from this device into the left input of your pocket operator.
+         The sync signal is sent over the audio cable."]
+     [:p "Turn the volume all the way up on this device."]
+     [:p "Set sync mode on your pocket operator to SY4 or SY5 (sync pass-through)
+         using the top-right button + BPM."]
+     [:p "Press play to start the sync signal."]
+     [:h3 "Tips"]
+     [:p "Huawei phones and maybe others have a 'battery saving' mode which lowers the headphone level.
+         This prevents sync from working. You can turn off this mode in your phone settings."]
+     [:h3 "Privacy"]
+     [:p
+      "The app does not access, collect, use, or share any of your personal data.
+      We don't collect any personal information."]
+     [:p [:a {:href "https://dopeloop.ai/privacy/po-loopsync"} "Full privacy policy"] "."]
+     [:p [:button.ok {:on-click #(swap! state update :show-menu not)} "Ok"]]]]
    [:div]])
 
 (defn component-main [state]
   (let [bpm (get-bpm @state)
         swing (get-swing @state)
         playing (@state :playing)]
-    [:div
-     [component-menu-toggle state]
-     [:div#tempo.input-group
-      [:button {:disabled (< (/ bpm 2) bpm-min)
-                :on-click #(set-bpm! state (/ bpm 2))} "½"]
-      [:span {:class (when (<= bpm bpm-min) "disabled")
-              :on-click #(set-bpm! state (- bpm 1))} "–"]
-      [:div#bpm bpm]
-      [:span {:class (when (>= bpm bpm-max) "disabled")
-              :on-click #(set-bpm! state (+ bpm 1))} "+"]
-      [:button {:disabled (> (* bpm 2) bpm-max)
-                :on-click #(set-bpm! state (* bpm 2))} "2"]]
-     [:div.input-group
-      [component-slider :bpm bpm bpm-min bpm-max]]
-     [:div.input-group
-      [:button#tap {:on-click #(tap! state)} "tap"]]
-     [:div.input-group
-      [component-slider :swing swing 0 75]]
-     [:div.input-group
-      [:button#play {:on-click #(if playing (stop! state) (play! state))
-                     :ref (fn [el]
-                            (when el
-                              (aset el "innerHTML" (if playing (:stop buttons) (:play buttons)))))}]]]))
+    [:div#app
+     [:div
+      [component-menu-toggle state]
+      [:div#tempo.input-group
+       [:button {:disabled (< (/ bpm 2) bpm-min)
+                 :on-click #(set-bpm! state (/ bpm 2))} "½"]
+       [:span {:class (when (<= bpm bpm-min) "disabled")
+               :on-click #(set-bpm! state (- bpm 1))} "–"]
+       [:div#bpm bpm]
+       [:span {:class (when (>= bpm bpm-max) "disabled")
+               :on-click #(set-bpm! state (+ bpm 1))} "+"]
+       [:button {:disabled (> (* bpm 2) bpm-max)
+                 :on-click #(set-bpm! state (* bpm 2))} "2"]]
+      [:div.input-group
+       [component-slider :bpm bpm bpm-min bpm-max]]
+      [:div.input-group
+       [:button#tap {:on-click #(tap! state)} "tap"]]
+      [:div.input-group
+       [component-slider :swing swing 0 75]]
+      [:div.input-group
+       [:button#play {:on-click #(if playing (stop! state) (play! state))
+                      :ref (fn [el]
+                             (when el
+                               (aset el "innerHTML" (if playing (:stop buttons) (:play buttons)))))}]]]]))
 
 (defn component-pages [state]
   (if (:show-menu @state)
@@ -181,7 +201,7 @@
     [component-main state]))
 
 (defn reload! {:dev/after-load true} []
-  (rdom/render [component-pages state] (js/document.getElementById "app")))
+  (rdom/render [component-pages state] (aget js/document "body")))
 
 (defn main! []
   (swap! state assoc :context (audio-context.))
