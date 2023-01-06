@@ -33,6 +33,9 @@
                                 (print "post" *state *old-state)
                                 (merge initial-state *state))))
 
+(defn create-new-context [*state]
+  (assoc *state :context (audio-context.)))
+
 (defn make-click-track-audio-buffer [{:keys [context bpm swing] :as *state}]
   (let [beat-seconds (/ (/ 60 bpm) 2)
         beats 2
@@ -66,12 +69,13 @@
              #(-> % make-click-track-audio-buffer play-click-track!)))))
 
 (defn play! [state]
-  (swap! state assoc :playing true)
+  (swap! state assoc :playing true :context (audio-context.))
   (update-loop! state))
 
 (defn stop! [state]
   (let [click-track-audio-source (@state :audio-source)]
-    (swap! state dissoc :playing :audio-source :audio-buffer)
+    (.close (:context @state))
+    (swap! state dissoc :playing :audio-source :audio-buffer :context)
     (stop-source! click-track-audio-source)))
 
 (defn average [coll]
@@ -204,5 +208,4 @@
   (rdom/render [component-pages state] (aget js/document "body")))
 
 (defn main! []
-  (swap! state assoc :context (audio-context.))
   (reload!))
