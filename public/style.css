@@ -130,7 +130,7 @@ input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   height: 48px;
-  width: 300px;
+  width: 100%;
   background-color: transparent;
   border: 2px solid var(--color-1);
   margin: 0px;
@@ -161,6 +161,7 @@ label {
   text-align: center;
   padding: 0px;
   margin: 0px;
+  width: 100%;
 }
 
 span.icon {
@@ -184,14 +185,18 @@ span.icon svg {
   max-width: 90%;
 }
 
+#app, #help {
+  max-width: 600px;
+  margin: 0px auto;
+  padding: 0px 0.5em;
+}
+
 #app {
   display: flex;
   width: 100%;
   height: 100%;
   flex-direction: column;
   justify-content: center;
-  margin: 0px;
-  padding: 0px;
 }
 
 #app > div {
@@ -202,13 +207,8 @@ span.icon svg {
 }
 
 #app > div, #help > div {
-  width: 300px;
+  width: 100%;
   margin: 0px auto;
-  padding: 0px;
-}
-
-#help {
-  margin: 0px;
   padding: 0px;
 }
 
