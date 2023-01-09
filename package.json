@@ -2,7 +2,7 @@
   "name": "PocketSync",
   "version": "0.0.1",
   "dependencies": {
-    "cljs-dopeloop": "github:chr15m/cljs-dopeloop#9852aee"
+    "cljs-dopeloop": "github:chr15m/cljs-dopeloop#528f22c"
   },
   "devDependencies": {
     "browser-sync": "^2.27.11",

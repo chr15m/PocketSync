@@ -4,7 +4,7 @@
     [reagent.core :as r]
     [reagent.dom :as rdom]
     [alandipert.storage-atom :refer [local-storage]]
-    [dopeloop.main :refer [audio-context seamless-loop-audio-buffer! stop-source!]]))
+    [dopeloop.main :refer [audio-context seamless-loop-audio-buffer! stop-source! on-ios?]]))
 
 (def initial-state {:bpm 180 ; persisted
                     :swing 0 ; persisted
@@ -204,8 +204,19 @@
     [component-help state]
     [component-main state]))
 
+(defn toggle-audio-context [{:keys [context]} pause]
+  ; TODO: only iOS
+  (cond
+    (and pause context (= (aget context "state") "running"))
+    (.suspend context)
+    (and (not pause) context (= (aget context "state") "suspended"))
+    (js/setTimeout #(.resume context) 500)))
+
 (defn reload! {:dev/after-load true} []
   (rdom/render [component-pages state] (aget js/document "body")))
 
 (defn main! []
+  (when (on-ios?)
+    (.addEventListener js/window "blur" #(toggle-audio-context @state true))
+    (.addEventListener js/window "focus" #(toggle-audio-context @state false)))
   (reload!))
