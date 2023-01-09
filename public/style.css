@@ -2,6 +2,8 @@
  * https://jgthms.com/web-design-in-4-minutes/ 
  */
 
+@import url(fonts/fonts.css);
+
 :root {
   --color-1: #F7F1ED;
   --color-1-shadow: #97928e;
@@ -12,7 +14,7 @@
 
 * {
   box-sizing: border-box;
-  font-family: "Courier", monospace;
+  font-family: "Courier Prime", serif;
   font-weight: bold;
   font-size: 24px;
   padding: 0.25em;
@@ -20,7 +22,7 @@
 }
 
 svg text {
-  font-family: "Courier", monospace;
+  font-family: "Courier Prime", serif;
   fill: var(--color-1);
   stroke: transparent;
   stroke-width: 2px;
@@ -229,6 +231,10 @@ span.icon svg {
 #help p, #help h3, #help a {
   margin: 1em 0px;
   padding: 0px;
+}
+
+#help p {
+  font-weight: normal;
 }
 
 #help button {
