@@ -1,12 +1,11 @@
 {
   "name": "PocketSync",
   "version": "0.0.1",
-  "dependencies": {
-    "cljs-dopeloop": "github:chr15m/cljs-dopeloop#528f22c"
-  },
   "devDependencies": {
     "browser-sync": "^2.27.11",
+    "cljs-dopeloop": "github:chr15m/cljs-dopeloop#a590c0b",
     "concurrently": "^7.6.0",
+    "cordova": "^11.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "shadow-cljs": "^2.20.15",
