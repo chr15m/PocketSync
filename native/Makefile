@@ -13,7 +13,9 @@
 # You will have to select yourself in the signing (red error will lead you)
 # When prompted for password choose to always allow.
 
-all: build build/icon.png build/resources/icon.png build/resources/splash.jpg
+all: build build/icon.png gfx
+
+gfx: build/resources/icon.png build/resources/splash.jpg build/icon.png
 
 CORDOVA=cd build && npx cordova
 
@@ -42,11 +44,11 @@ build/resources/splash.jpg: ../splash.svg build
 	mkdir -p build/resources
 	inkscape --export-png=$@ --export-width=2732 --export-height=2732 $<
 
-install-android: build
+install-android: build gfx
 	make -C ..
 	$(CORDOVA) run android
 
-setup-ios-project: build
+setup-ios-project: build gfx
 	make -C ..
 	# security unlock-keychain -p YOUR_LOGIN_PASSWORD_HERE login.keychain
 	# security unlock-keychain
