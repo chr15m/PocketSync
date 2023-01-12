@@ -4,11 +4,12 @@
     [reagent.core :as r]
     [reagent.dom :as rdom]
     [alandipert.storage-atom :refer [local-storage]]
-    [dopeloop.main :refer [audio-context seamless-loop-audio-buffer! stop-source! manage-audio-context-ios]]))
+    [dopeloop.main :refer [audio-context seamless-loop-audio-buffer! stop-source! manage-audio-context-ios poll-device-volume]]))
 
 (def initial-state {:bpm 180 ; persisted
                     :swing 0 ; persisted
                     :playing false
+                    :device-volume 1
                     :taps []
                     :audio-source nil
                     :context nil
@@ -173,7 +174,8 @@
 (defn component-main [state]
   (let [bpm (get-bpm @state)
         swing (get-swing @state)
-        playing (@state :playing)]
+        playing (@state :playing)
+        device-volume (@state :device-volume)]
     [:div#app
      [:div
       [component-menu-toggle state]
@@ -194,6 +196,9 @@
       [:div.input-group
        [component-slider :swing swing 0 75]]
       [:div.input-group
+       [:div.highlight.device-warning
+        (when (< device-volume 0.9)
+          "Set device volume to max for sync.")]
        [:button#play {:on-click #(if playing (stop! state) (play! state))
                       :ref (fn [el]
                              (when el
@@ -209,4 +214,5 @@
 
 (defn main! []
   (manage-audio-context-ios #(:context @state))
+  (poll-device-volume 250 #(swap! state assoc :device-volume %))
   (reload!))
