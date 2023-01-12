@@ -9,6 +9,9 @@
 
 # iOS notes:
 # If you can't Run in Xcode make sure the correct "scheme" is selected
+# Under "Product -> Scheme" menu and select the app itself
+# You will have to select yourself in the signing (red error will lead you)
+# When prompted for password choose to always allow.
 
 all: build build/icon.png build/resources/icon.png build/resources/splash.jpg
 
@@ -43,5 +46,7 @@ install-android:
 
 install-ios:
 	make -C ..
+	# security unlock-keychain -p YOUR_LOGIN_PASSWORD_HERE login.keychain
+	security unlock-keychain
 	cd build && npx cordova-res ios --copy
 	$(CORDOVA) run ios
