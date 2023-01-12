@@ -5,3 +5,4 @@ public/js
 build
 pnpm-lock.yaml
 workspace
+native/build
