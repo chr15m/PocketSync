@@ -25,6 +25,7 @@ build:
 	$(CORDOVA) platform add android
 	$(CORDOVA) plugin add https://github.com/MCluck90/cordova-plugin-android-volume
 	$(CORDOVA) plugin add https://github.com/chr15m/cordova-plugin-get-volume
+	$(CORDOVA) plugin add https://github.com/clemdesign/cordova-plugin-ios-disable-bounce
 	rm -rf build/www && cd build && ln -s ../../build www
 	rm -f build/config.xml && cd build && ln -s ../config.xml
 	touch build
