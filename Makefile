@@ -1,4 +1,4 @@
-build: $(shell find src) public/*
+build: $(shell find src) public/* node_modules
 	mkdir -p build
 	npx shadow-cljs release app
 	rsync -aLz --exclude js --exclude '.*.swp' public/ build
