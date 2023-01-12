@@ -21,7 +21,7 @@ build:
 	make -C ..
 	mkdir -p build
 	npx cordova create build cx.mccormick.pocketsync PocketSync
-	cd build && pnpm i cordova
+	cd build && npm i cordova
 	$(CORDOVA) platform add ios
 	$(CORDOVA) platform add android
 	$(CORDOVA) plugin add https://github.com/MCluck90/cordova-plugin-android-volume
@@ -42,11 +42,11 @@ build/resources/splash.jpg: ../splash.svg build
 	mkdir -p build/resources
 	inkscape --export-png=$@ --export-width=2732 --export-height=2732 $<
 
-install-android:
+install-android: build
 	make -C ..
 	$(CORDOVA) run android
 
-setup-ios-project:
+setup-ios-project: build
 	make -C ..
 	# security unlock-keychain -p YOUR_LOGIN_PASSWORD_HERE login.keychain
 	# security unlock-keychain

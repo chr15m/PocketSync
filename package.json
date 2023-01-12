@@ -9,7 +9,7 @@
     "cordova-res": "^0.15.4",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "shadow-cljs": "^2.20.15",
+    "shadow-cljs": "2.20.19",
     "storage-atom": "github:chr15m/storage-atom#ea2ba37"
   },
   "scripts": {

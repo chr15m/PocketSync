@@ -119,11 +119,16 @@ button {
   border-bottom: 4px solid var(--color-1-shadow);
   border-radius: 6px;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:active {
   margin-top: 4px;
   border-bottom: 0px solid var(--color-1-shadow);
+}
+
+.clickable {
+  -webkit-tap-highlight-color: transparent;
 }
 
 input[type="range"] {

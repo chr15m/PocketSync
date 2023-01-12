@@ -182,11 +182,11 @@
       [:div#tempo.input-group
        [:button {:disabled (< (/ bpm 2) bpm-min)
                  :on-click #(set-bpm! state (/ bpm 2))} "½"]
-       [:span {:class (when (<= bpm bpm-min) "disabled")
-               :on-click #(set-bpm! state (- bpm 1))} "–"]
+       [:span.clickable {:class (when (<= bpm bpm-min) "disabled")
+                         :on-click #(set-bpm! state (- bpm 1))} "–"]
        [:div#bpm bpm]
-       [:span {:class (when (>= bpm bpm-max) "disabled")
-               :on-click #(set-bpm! state (+ bpm 1))} "+"]
+       [:span.clickable {:class (when (>= bpm bpm-max) "disabled")
+                         :on-click #(set-bpm! state (+ bpm 1))} "+"]
        [:button {:disabled (> (* bpm 2) bpm-max)
                  :on-click #(set-bpm! state (* bpm 2))} "2"]]
       [:div.input-group
