@@ -42,11 +42,11 @@ build/resources/splash.jpg: ../splash.svg build
 	mkdir -p build/resources
 	inkscape --export-png=$@ --export-width=2732 --export-height=2732 $<
 
-install-android:
+install-android: build
 	make -C ..
 	$(CORDOVA) run android
 
-setup-ios-project:
+setup-ios-project: build
 	make -C ..
 	# security unlock-keychain -p YOUR_LOGIN_PASSWORD_HERE login.keychain
 	# security unlock-keychain
