@@ -52,7 +52,6 @@ setup-ios-project: build gfx
 	make -C ..
 	# security unlock-keychain -p YOUR_LOGIN_PASSWORD_HERE login.keychain
 	# security unlock-keychain
-	pnpm i cordova-res
-	cd build && npx cordova-res ios --copy
+	cd build && ../../node_modules/.bin/cordova-res ios --copy
 	$(CORDOVA) prepare ios
 	open build/platforms/ios/*.xcodeproj
