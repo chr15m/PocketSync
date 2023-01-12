@@ -43,5 +43,5 @@ install-android:
 	$(CORDOVA) run android
 
 install-ios:
-	$(CORDOVA) cordova-res ios --copy
+	cd build && npx cordova-res ios --copy
 	$(CORDOVA) run ios
