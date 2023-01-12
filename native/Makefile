@@ -14,7 +14,8 @@ all: build build/icon.png build/resources/icon.png build/resources/splash.jpg
 
 CORDOVA=cd build && npx cordova
 
-build: ../build
+build:
+	make -C ..
 	mkdir -p build
 	npx cordova create build cx.mccormick.pocketsync PocketSync
 	$(CORDOVA) platform add ios
@@ -24,9 +25,6 @@ build: ../build
 	rm -rf build/www && cd build && ln -s ../../build www
 	rm -f build/config.xml && cd build && ln -s ../config.xml
 	touch build
-
-../build:
-	make -C ..
 
 build/icon.png: ../app-icon.svg build
 	inkscape --export-png=$@ --export-width=512 --export-height=512 $<
@@ -40,8 +38,10 @@ build/resources/splash.jpg: ../splash.svg build
 	inkscape --export-png=$@ --export-width=2732 --export-height=2732 $<
 
 install-android:
+	make -C ..
 	$(CORDOVA) run android
 
 install-ios:
+	make -C ..
 	$(CORDOVA) cordova-res ios --copy
 	$(CORDOVA) run ios
