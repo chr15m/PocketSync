@@ -21,6 +21,7 @@ build:
 	make -C ..
 	mkdir -p build
 	npx cordova create build cx.mccormick.pocketsync PocketSync
+	cd build && pnpm i cordova
 	$(CORDOVA) platform add ios
 	$(CORDOVA) platform add android
 	$(CORDOVA) plugin add https://github.com/MCluck90/cordova-plugin-android-volume
@@ -45,9 +46,11 @@ install-android:
 	make -C ..
 	$(CORDOVA) run android
 
-install-ios:
+setup-ios-project:
 	make -C ..
 	# security unlock-keychain -p YOUR_LOGIN_PASSWORD_HERE login.keychain
-	security unlock-keychain
+	# security unlock-keychain
+	pnpm i cordova-res
 	cd build && npx cordova-res ios --copy
-	$(CORDOVA) run ios
+	$(CORDOVA) prepare ios
+	open build/platforms/ios/*.xcodeproj
