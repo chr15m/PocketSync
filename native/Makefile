@@ -21,7 +21,7 @@ build:
 	make -C ..
 	mkdir -p build
 	npx cordova create build cx.mccormick.pocketsync PocketSync
-	cd build && pnpm i cordova
+	cd build && npm i cordova
 	$(CORDOVA) platform add ios
 	$(CORDOVA) platform add android
 	$(CORDOVA) plugin add https://github.com/MCluck90/cordova-plugin-android-volume
