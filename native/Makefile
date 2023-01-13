@@ -21,7 +21,6 @@ help:
 	@echo "  make ios-start         # to open XCode with a project you can run to deploy"
 	@echo "  make ios-run           # run on the device (once working in XCode)"
 
-
 GFX=build/resources/icon.png build/resources/splash.jpg build/icon.png
 JS=build/www/js/main.js
 CORDOVA=cd build && ../../node_modules/.bin/cordova
@@ -49,10 +48,10 @@ ios-start: ios $(JS) $(GFX)
 	open build/platforms/ios/*.xcworkspace
 
 ios-run: ios $(JS) $(GFX)
-        make -C ..
-        security unlock-keychain
+	make -C ..
+	security unlock-keychain
 	$(CORDOVA) prepare ios
-        $(CORDOVA) run ios
+	$(CORDOVA) run ios
 
 build/platforms/android/android.json: build/package.json build/config.xml
 	[ -f "$@" ] || ( $(CORDOVA) platform add android )
