@@ -20,6 +20,10 @@
         <preference name="scheme" value="app" />
         <preference name="hostname" value="localhost" />
         <preference name="Orientation" value="portrait" />
+        <preference name="StatusBarOverlaysWebView" value="true" />
+        <preference name="StatusBarBackgroundColor" value="#444349" />
+        <preference name="StatusBarStyle" value="lightcontent" />
+        <preference name="Fullscreen" value="false" />
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
         <icon height="57" src="resources/ios/icon/icon.png" width="57" />

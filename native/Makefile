@@ -55,6 +55,7 @@ build/platforms/ios/ios.json: build/package.json build/config.xml
 	[ -f "$@" ] || ( $(CORDOVA) platform add ios )
 	$(CORDOVA) plugin add https://github.com/chr15m/cordova-plugin-get-volume
 	$(CORDOVA) plugin add https://github.com/clemdesign/cordova-plugin-ios-disable-bounce
+	$(CORDOVA) plugin add cordova-plugin-statusbar
 	touch $@
 
 build/www/js/main.js: ../build/index.html
