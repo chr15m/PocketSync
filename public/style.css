@@ -223,7 +223,7 @@ span.icon svg {
 #help > div {
   margin: auto;
   padding: 0px;
-  padding-top: 0.5em;
+  padding-top: env(safe-area-inset-top);
 }
 
 #help > div > div {
@@ -270,7 +270,7 @@ span.icon svg {
 #app > div > :first-child {
   flex-grow: 1;
   justify-content: end;
-  padding-top: 0.5em;
+  padding-top: env(safe-area-inset-top);
 }
 
 #app > div > :last-child {
