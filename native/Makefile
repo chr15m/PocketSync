@@ -38,15 +38,21 @@ ios-start: ios $(JS) $(GFX)
 	# security unlock-keychain
 	cd build && ../../node_modules/.bin/cordova-res ios --copy
 	$(CORDOVA) prepare ios
-	open build/platforms/ios/*.xcodeproj
+	$(CORDOVA) build ios --buildFlag="-scheme PocketSync" --codeSigningIdentity="Apple Development" ||:
+	@echo "Launching XCode, please wait."
+	@echo "Next steps:"
+	@echo "* Select the PocketSync scheme"
+	@echo "* Select the right sigining settings (follow the errors)"
+	sleep 5
+	open build/platforms/ios/*.xcworkspace
 
 build/platforms/android/android.json: build/package.json build/config.xml
-	[ -f "$@" ] || $(CORDOVA) platform add android
+	[ -f "$@" ] || ( $(CORDOVA) platform add android )
 	$(CORDOVA) plugin add https://github.com/MCluck90/cordova-plugin-android-volume
 	touch $@
 
 build/platforms/ios/ios.json: build/package.json build/config.xml
-	[ -f "$@" ] || $(CORDOVA) platform add ios
+	[ -f "$@" ] || ( $(CORDOVA) platform add ios )
 	$(CORDOVA) plugin add https://github.com/chr15m/cordova-plugin-get-volume
 	$(CORDOVA) plugin add https://github.com/clemdesign/cordova-plugin-ios-disable-bounce
 	touch $@
