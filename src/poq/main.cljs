@@ -9,7 +9,8 @@
                            stop-source!
                            manage-audio-context-ios
                            poll-device-volume on-ios?
-                           lock-screen-orientation]]))
+                           lock-screen-orientation
+                           on-device-ready]]))
 
 (def initial-state {:bpm 90 ; persisted
                     :swing 0 ; persisted
@@ -217,7 +218,7 @@
   (rdom/render [component-pages state] (aget js/document "body")))
 
 (defn main! []
-  (lock-screen-orientation "portrait")
   (manage-audio-context-ios #(:context @state))
   (poll-device-volume 250 #(swap! state assoc :device-volume %))
+  (on-device-ready #(lock-screen-orientation "portrait-primary"))
   (reload!))
