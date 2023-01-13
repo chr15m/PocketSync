@@ -19,6 +19,8 @@ help:
 	@echo "  make ios               # to set up for ios builds"
 	@echo "  make android-install   # to deploy an android dev build to the device"
 	@echo "  make ios-start         # to open XCode with a project you can run to deploy"
+	@echo "  make ios-run           # run on the device (once working in XCode)"
+
 
 GFX=build/resources/icon.png build/resources/splash.jpg build/icon.png
 JS=build/www/js/main.js
@@ -45,6 +47,12 @@ ios-start: ios $(JS) $(GFX)
 	@echo "* Select the right sigining settings (follow the errors)"
 	sleep 5
 	open build/platforms/ios/*.xcworkspace
+
+ios-run: ios $(JS) $(GFX)
+        make -C ..
+        security unlock-keychain
+	$(CORDOVA) prepare ios
+        $(CORDOVA) run ios
 
 build/platforms/android/android.json: build/package.json build/config.xml
 	[ -f "$@" ] || ( $(CORDOVA) platform add android )
