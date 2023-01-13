@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="cx.mccormick.pocketsync" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>PocketSync</name>
-    <description>Pocket operator Sync</description>
+    <name>PO Sync</name>
+    <description>Sync pocket operator devices</description>
     <author email="chris@mccormickit.com" href="https://dopeloop.ai">
         Chris McCormick
     </author>

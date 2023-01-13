@@ -39,10 +39,9 @@ ios-start: ios $(JS) $(GFX)
 	# security unlock-keychain
 	cd build && ../../node_modules/.bin/cordova-res ios --copy
 	$(CORDOVA) prepare ios
-	$(CORDOVA) build ios --buildFlag="-scheme PocketSync" --codeSigningIdentity="Apple Development" ||:
+	$(CORDOVA) build ios --codeSigningIdentity="Apple Development" ||:
 	@echo "Launching XCode, please wait."
 	@echo "Next steps:"
-	@echo "* Select the PocketSync scheme"
 	@echo "* Select the right sigining settings (follow the errors)"
 	sleep 5
 	open build/platforms/ios/*.xcworkspace
@@ -79,7 +78,7 @@ build/config.xml: build
 
 build/package.json: ../build/index.html
 	mkdir -p build
-	npx cordova create build cx.mccormick.pocketsync PocketSync
+	npx cordova create build cx.mccormick.pocketsync 'PO Sync'
 
 build/icon.png: ../app-icon.svg
 	mkdir -p build
