@@ -28,10 +28,8 @@
 (defonce state (local-storage (r/atom initial-state)
                               :pocketsync-settings
                               (fn [*state]
-                                (print "pre" *state)
                                 (select-keys *state local-storage-keys))
-                              (fn [*state *old-state]
-                                (print "post" *state *old-state)
+                              (fn [*state]
                                 (merge initial-state *state))))
 
 (defn create-new-context [*state]
@@ -108,7 +106,6 @@
   (let [previous-state @state
         updated-state (swap! state new-tap)]
     (when (not= updated-state previous-state)
-      (js/console.log "CHANGED")
       (update-loop! state))))
 
 (defn update-val! [state k ev]
