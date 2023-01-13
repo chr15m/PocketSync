@@ -41,12 +41,12 @@ ios-start: ios $(JS) $(GFX)
 	open build/platforms/ios/*.xcodeproj
 
 build/platforms/android/android.json: build/package.json build/config.xml
-	$(CORDOVA) platform add android ||:
+	[ -f "$@" ] || $(CORDOVA) platform add android
 	$(CORDOVA) plugin add https://github.com/MCluck90/cordova-plugin-android-volume
 	touch $@
 
 build/platforms/ios/ios.json: build/package.json build/config.xml
-	$(CORDOVA) platform add ios ||:
+	[ -f "$@" ] || $(CORDOVA) platform add ios
 	$(CORDOVA) plugin add https://github.com/chr15m/cordova-plugin-get-volume
 	$(CORDOVA) plugin add https://github.com/clemdesign/cordova-plugin-ios-disable-bounce
 	touch $@
