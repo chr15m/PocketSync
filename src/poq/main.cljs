@@ -4,7 +4,7 @@
     [reagent.core :as r]
     [reagent.dom :as rdom]
     [alandipert.storage-atom :refer [local-storage]]
-    [dopeloop.main :refer [audio-context seamless-loop-audio-buffer! stop-source! manage-audio-context-ios poll-device-volume]]))
+    [dopeloop.main :refer [audio-context seamless-loop-audio-buffer! stop-source! manage-audio-context-ios poll-device-volume on-ios?]]))
 
 (def initial-state {:bpm 90 ; persisted
                     :swing 0 ; persisted
@@ -157,9 +157,11 @@
      [:p "Set sync mode on your pocket operator to SY4 or SY5 (sync pass-through)
          using the top-right button + BPM."]
      [:p "Press play to start the sync signal."]
-     [:h3 "Tips"]
-     [:p "Huawei phones and maybe others have a 'battery saving' mode which lowers the headphone level.
-         This prevents sync from working. You can turn off this mode in your phone settings."]
+     (when (not (on-ios?))
+       [:<>
+        [:h3 "Tips"]
+        [:p "Huawei phones and maybe others have a 'battery saving' mode which lowers the headphone level.
+            This prevents sync from working. You can turn off this mode in your phone settings."]])
      [:h3 "Privacy"]
      [:p
       "The app does not access, collect, use, or share any of your personal data.
