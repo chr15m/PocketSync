@@ -6,7 +6,7 @@
     [alandipert.storage-atom :refer [local-storage]]
     [dopeloop.main :refer [audio-context seamless-loop-audio-buffer! stop-source! manage-audio-context-ios poll-device-volume]]))
 
-(def initial-state {:bpm 180 ; persisted
+(def initial-state {:bpm 90 ; persisted
                     :swing 0 ; persisted
                     :playing false
                     :device-volume 1

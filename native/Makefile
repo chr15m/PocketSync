@@ -19,6 +19,8 @@ help:
 	@echo "  make ios               # to set up for ios builds"
 	@echo "  make android-install   # to deploy an android dev build to the device"
 	@echo "  make ios-start         # to open XCode with a project you can run to deploy"
+	@echo "  make ios-run           # run on the device (once working in XCode)"
+
 
 GFX=build/resources/icon.png build/resources/splash.jpg build/icon.png
 JS=build/www/js/main.js
@@ -38,17 +40,30 @@ ios-start: ios $(JS) $(GFX)
 	# security unlock-keychain
 	cd build && ../../node_modules/.bin/cordova-res ios --copy
 	$(CORDOVA) prepare ios
-	open build/platforms/ios/*.xcodeproj
+	$(CORDOVA) build ios --buildFlag="-scheme PocketSync" --codeSigningIdentity="Apple Development" ||:
+	@echo "Launching XCode, please wait."
+	@echo "Next steps:"
+	@echo "* Select the PocketSync scheme"
+	@echo "* Select the right sigining settings (follow the errors)"
+	sleep 5
+	open build/platforms/ios/*.xcworkspace
+
+ios-run: ios $(JS) $(GFX)
+        make -C ..
+        security unlock-keychain
+	$(CORDOVA) prepare ios
+        $(CORDOVA) run ios
 
 build/platforms/android/android.json: build/package.json build/config.xml
-	[ -f "$@" ] || $(CORDOVA) platform add android
+	[ -f "$@" ] || ( $(CORDOVA) platform add android )
 	$(CORDOVA) plugin add https://github.com/MCluck90/cordova-plugin-android-volume
 	touch $@
 
 build/platforms/ios/ios.json: build/package.json build/config.xml
-	[ -f "$@" ] || $(CORDOVA) platform add ios
+	[ -f "$@" ] || ( $(CORDOVA) platform add ios )
 	$(CORDOVA) plugin add https://github.com/chr15m/cordova-plugin-get-volume
 	$(CORDOVA) plugin add https://github.com/clemdesign/cordova-plugin-ios-disable-bounce
+	$(CORDOVA) plugin add cordova-plugin-statusbar
 	touch $@
 
 build/www/js/main.js: ../build/index.html
