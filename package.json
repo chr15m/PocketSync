@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "devDependencies": {
     "browser-sync": "^2.27.11",
-    "cljs-dopeloop": "github:chr15m/cljs-dopeloop#7c5c033",
+    "cljs-dopeloop": "github:chr15m/cljs-dopeloop#5a2a696",
     "concurrently": "^7.6.0",
     "cordova": "^11.0.0",
     "cordova-res": "^0.15.4",

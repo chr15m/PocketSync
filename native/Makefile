@@ -62,6 +62,7 @@ build/platforms/ios/ios.json: build/package.json build/config.xml
 	$(CORDOVA) plugin add https://github.com/chr15m/cordova-plugin-get-volume
 	$(CORDOVA) plugin add https://github.com/clemdesign/cordova-plugin-ios-disable-bounce
 	$(CORDOVA) plugin add cordova-plugin-statusbar
+	$(CORDOVA) plugin add cordova-plugin-screen-orientation
 	touch $@
 
 build/www/js/main.js: ../build/index.html

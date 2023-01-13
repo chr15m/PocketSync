@@ -4,7 +4,12 @@
     [reagent.core :as r]
     [reagent.dom :as rdom]
     [alandipert.storage-atom :refer [local-storage]]
-    [dopeloop.main :refer [audio-context seamless-loop-audio-buffer! stop-source! manage-audio-context-ios poll-device-volume on-ios?]]))
+    [dopeloop.main :refer [audio-context
+                           seamless-loop-audio-buffer!
+                           stop-source!
+                           manage-audio-context-ios
+                           poll-device-volume on-ios?
+                           lock-screen-orientation]]))
 
 (def initial-state {:bpm 90 ; persisted
                     :swing 0 ; persisted
@@ -212,6 +217,7 @@
   (rdom/render [component-pages state] (aget js/document "body")))
 
 (defn main! []
+  (lock-screen-orientation "portrait")
   (manage-audio-context-ios #(:context @state))
   (poll-device-volume 250 #(swap! state assoc :device-volume %))
   (reload!))
