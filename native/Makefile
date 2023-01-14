@@ -18,18 +18,28 @@ help:
 	@echo "  make android           # to set up for android builds"
 	@echo "  make ios               # to set up for ios builds"
 	@echo "  make android-install   # to deploy an android dev build to the device"
+	@echo "  make android-binary    # to make a .aab that can be uploaded to the Play Store"
 	@echo "  make ios-start         # to open XCode with a project you can run to deploy"
 	@echo "  make ios-run           # run on the device (once working in XCode)"
 
 GFX=build/resources/icon.png build/resources/splash.jpg build/icon.png
 JS=build/www/js/main.js
 CORDOVA=cd build && ../../node_modules/.bin/cordova
+APK=build/platforms/android/app/build/outputs/bundle/release/app-release.aab
 
 android: build/platforms/android/android.json
 
 android-install: android $(JS) $(GFX)
 	make -C ..
 	$(CORDOVA) run android
+
+android-binary: posync-release.aab
+
+posync-release.aab: android $(JS) $(GFX)
+	# cp gradle.properties platforms/android/app/gradle.properties
+	@echo "Running cordova build --release"
+	@$(CORDOVA) build android --release -- --packageType=bundle --keystore=../pocketsync.keystore --storePassword="${KEYSTORE_PASSWORD}" --alias="posync" --password="${KEYSTORE_PASSWORD}"
+	mv ${APK} $@
 
 ios: build/platforms/ios/ios.json
 
