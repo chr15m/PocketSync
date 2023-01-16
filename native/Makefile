@@ -34,6 +34,12 @@ REV=$(shell git rev-parse HEAD | cut -b-8)
 
 android: build/platforms/android/android.json
 
+android-prepare: build/resources/android
+
+build/resources/android: $(GFX)
+	$(CORDOVA)-res android --copy
+	$(CORDOVA) prepare android
+
 android-install: android $(JS) pocketsync.keystore
 	@adb devices | grep -oE 'device$$' || ( echo "No device attached. Aborting build."; exit 1 )
 	make -C ..
@@ -51,7 +57,7 @@ ios: build/platforms/ios/ios.json
 
 ios-start: ios $(JS) $(GFX)
 	make -C ..
-	cd build && ../../node_modules/.bin/cordova-res ios --copy
+	$(CORDOVA)-res ios --copy
 	$(CORDOVA) prepare ios
 	$(CORDOVA) build ios --codeSigningIdentity="Apple Development" ||:
 	@echo "Launching XCode, please wait."
@@ -71,7 +77,6 @@ pocketsync.keystore:
 	keytool -genkey -v -keystore pocketsync.keystore -alias posync -keyalg RSA -keysize 2048 -validity 1000
 
 build/platforms/android/android.json: build/package.json build/config.xml $(GFX)
-	# [ -f "$@" ] || ( $(CORDOVA) platform add android@11.0.0 )
 	[ -f "$@" ] || ( $(CORDOVA) platform add android )
 	$(CORDOVA) plugin add https://github.com/MCluck90/cordova-plugin-android-volume
 	touch $@
