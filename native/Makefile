@@ -76,9 +76,10 @@ pocketsync.keystore:
 	@echo "Generating a new Android keystore but you might need to copy the existing one."
 	keytool -genkey -v -keystore pocketsync.keystore -alias posync -keyalg RSA -keysize 2048 -validity 1000
 
-build/platforms/android/android.json: build/package.json build/config.xml build/resources/android
+build/platforms/android/android.json: build/package.json
 	[ -f "$@" ] || ( $(CORDOVA) platform add android )
 	$(CORDOVA) plugin add https://github.com/MCluck90/cordova-plugin-android-volume
+	rm -f build/config.xml && cd build && ln -s ../config.xml && touch config.xml
 	touch $@
 
 build/platforms/ios/ios.json: build/package.json build/config.xml build/resources/ios
@@ -101,7 +102,6 @@ build/www/js/main.js: ../build/index.html
 build/package.json build: ../build/index.html
 	mkdir -p build
 	[ -f "build/package.json" ] || npx cordova create build cx.mccormick.pocketsync 'PO Sync'
-	rm build/config.xml
 	touch build/package.json
 
 build/config.xml: build
