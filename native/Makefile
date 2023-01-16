@@ -40,14 +40,14 @@ build/resources/android: $(GFX)
 	$(CORDOVA)-res android --copy
 	$(CORDOVA) prepare android
 
-android-install: android $(JS) pocketsync.keystore
+android-install: android $(JS) build/resources/android pocketsync.keystore
 	@adb devices | grep -oE 'device$$' || ( echo "No device attached. Aborting build."; exit 1 )
 	make -C ..
 	$(CORDOVA) run android
 
 android-binary: posync-release-$(REV).aab
 
-posync-release-$(REV).aab: android $(JS) $(GFX)
+posync-release-$(REV).aab: android $(JS) build/resources/android
 	# cp gradle.properties platforms/android/app/gradle.properties
 	@echo "Running cordova build --release"
 	@$(CORDOVA) build android --release -- --packageType=bundle --keystore=../pocketsync.keystore --storePassword="${KEYSTORE_PASSWORD}" --alias="posync" --password="${KEYSTORE_PASSWORD}"
