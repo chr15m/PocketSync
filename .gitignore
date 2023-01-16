@@ -6,3 +6,5 @@ build
 pnpm-lock.yaml
 workspace
 native/build
+native/pocketsync.keystore
+native/*.aab

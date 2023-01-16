@@ -14,7 +14,7 @@
         <preference name="AndroidLaunchMode" value="singleTask" />
         <preference name="Orientation" value="portrait" />
         <preference name="android-minSdkVersion" value="22" />
-        <preference name="android-targetSdkVersion" value="31" />
+        <preference name="android-targetSdkVersion" value="32" />
     </platform>
     <platform name="ios">
         <preference name="scheme" value="app" />

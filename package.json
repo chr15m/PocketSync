@@ -5,7 +5,7 @@
     "browser-sync": "^2.27.11",
     "cljs-dopeloop": "github:chr15m/cljs-dopeloop#504f24c",
     "concurrently": "^7.6.0",
-    "cordova": "^11.0.0",
+    "cordova": "^11.1.0",
     "cordova-res": "^0.15.4",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
