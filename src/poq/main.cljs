@@ -172,7 +172,7 @@
      [:p
       "The app does not access, collect, use, or share any of your personal data.
       We don't collect any personal information."]
-     [:p [:a {:href "https://dopeloop.ai/privacy/po-loopsync"} "Full privacy policy"] "."]
+     [:p [:a {:href "https://dopeloop.ai/app-privacy-policy.html"} "Full privacy policy"] "."]
      [:p [:button.ok {:on-click #(swap! state update :show-menu not)} "Ok"]]]]
    [:div]])
 
