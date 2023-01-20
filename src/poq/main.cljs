@@ -215,7 +215,8 @@
     [component-main state]))
 
 (defn reload! {:dev/after-load true} []
-  (rdom/render [component-pages state] (aget js/document "body")))
+  (rdom/render [component-pages state]
+               (-> js/document (.querySelector "main"))))
 
 (defn main! []
   (manage-audio-context-ios #(:context @state))
