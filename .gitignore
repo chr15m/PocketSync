@@ -1,6 +1,7 @@
 .*.swp
 node_modules
 .shadow-cljs
+.envrc
 public/js
 build
 pnpm-lock.yaml
