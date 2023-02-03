@@ -137,6 +137,17 @@ button:active {
 
 .clickable {
   -webkit-tap-highlight-color: transparent;
+  min-width: 48px;
+  margin: 0px;
+  text-align: center;
+  vertical-align: center;
+  font-size: 1.5em;
+  line-height: 1.25em;
+  min-width: 48px;
+  padding: 0px;
+  margin: 0px;
+  padding: 0px 0.75ch;
+  cursor: pointer;
 }
 
 input[type="range"] {
@@ -239,12 +250,6 @@ span.icon svg {
   padding: 0px;
 }
 
-#help #menu {
-  display: flex;
-  justify-content: end;
-  align-items: start;
-}
-
 #help p, #help h3, #help a {
   margin: 1em 0px;
   padding: 0px;
@@ -290,6 +295,7 @@ span.icon svg {
 .input-group {
   display: flex;
   justify-content: center;
+  align-items: center;
   margin: 0.1em 0px;
   padding: 0px;
   -webkit-user-select: none;
@@ -303,7 +309,12 @@ span.icon svg {
 }
 
 #menu {
+  display: flex;
+  justify-content: end;
+  align-items: start;
   margin-top: 8px;
+  padding: 0px;
+  margin: 0px;
 }
 
 #tempo {
@@ -316,15 +327,9 @@ span.icon svg {
 }
 
 #tempo span {
-  font-size: 1.5em;
-  line-height: 1.25em;
-  padding: 0px;
-  margin: 0px;
-  padding: 0px 0.75ch;
-  cursor: pointer;
 }
 
-#tempo span.disabled {
+.disabled {
   opacity: 0.5;
 }
 
@@ -340,7 +345,7 @@ span.icon svg {
   min-width: 3.25ch;
 }
 
-#tempo button:disabled {
+button:disabled {
   opacity: 0.5;
 }
 
