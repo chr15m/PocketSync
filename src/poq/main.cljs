@@ -10,7 +10,8 @@
                            manage-audio-context-ios
                            poll-device-volume on-ios?
                            lock-screen-orientation
-                           on-device-ready]]))
+                           on-device-ready
+                           keep-awake keep-awake-cancel]]))
 
 (def initial-state {:bpm 90 ; persisted
                     :swing 0 ; persisted
@@ -74,10 +75,12 @@
              #(-> % make-click-track-audio-buffer play-click-track!)))))
 
 (defn play! [state]
+  (keep-awake)
   (swap! state assoc :playing true :context (audio-context.))
   (update-loop! state))
 
 (defn stop! [state]
+  (keep-awake-cancel)
   (let [click-track-audio-source (@state :audio-source)]
     (.close (:context @state))
     (swap! state dissoc :playing :audio-source :audio-buffer :context)

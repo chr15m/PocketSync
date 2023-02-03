@@ -79,6 +79,7 @@ pocketsync.keystore:
 build/platforms/android/android.json: build/package.json
 	[ -f "$@" ] || ( $(CORDOVA) platform add android )
 	$(CORDOVA) plugin add https://github.com/MCluck90/cordova-plugin-android-volume
+	$(CORDOVA) plugin add https://github.com/EddyVerbruggen/Insomnia-PhoneGap-Plugin.git
 	rm -f build/config.xml && cd build && ln -s ../config.xml && touch config.xml
 	touch $@
 
@@ -88,6 +89,7 @@ build/platforms/ios/ios.json: build/package.json build/config.xml build/resource
 	$(CORDOVA) plugin add https://github.com/clemdesign/cordova-plugin-ios-disable-bounce
 	$(CORDOVA) plugin add cordova-plugin-statusbar
 	$(CORDOVA) plugin add cordova-plugin-screen-orientation
+	$(CORDOVA) plugin add https://github.com/EddyVerbruggen/Insomnia-PhoneGap-Plugin.git
 	touch $@
 
 build/www/js/main.js: ../build/index.html
