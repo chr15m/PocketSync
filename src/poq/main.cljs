@@ -11,7 +11,7 @@
                            poll-device-volume on-ios?
                            lock-screen-orientation
                            on-device-ready
-                           keep-awake keep-awake-cancel]]))
+                           wake-screen-lock]]))
 
 (def initial-state {:bpm 90 ; persisted
                     :swing 0 ; persisted
@@ -22,8 +22,8 @@
                     :context nil
                     :show-menu false})
 
-(def bpm-min 60)
-(def bpm-max 240)
+(def bpm-range [60 240])
+(def swing-range [0 75])
 
 (def local-storage-keys [:bpm :swing])
 
@@ -75,12 +75,12 @@
              #(-> % make-click-track-audio-buffer play-click-track!)))))
 
 (defn play! [state]
-  (keep-awake)
+  (wake-screen-lock true)
   (swap! state assoc :playing true :context (audio-context.))
   (update-loop! state))
 
 (defn stop! [state]
-  (keep-awake-cancel)
+  (wake-screen-lock false)
   (let [click-track-audio-source (@state :audio-source)]
     (.close (:context @state))
     (swap! state dissoc :playing :audio-source :audio-buffer :context)
@@ -121,15 +121,15 @@
   (swap! state
          assoc-in k (if (number? ev) ev (int (-> ev .-target .-value)))))
 
-(defn set-bpm! [state v]
-  (update-val! state [:bpm] v)
+(defn update-loop-val! [state k update-fn]
+  (swap! state update-in [k] update-fn)
   (update-loop! state))
 
 (defn get-bpm [*state]
-  (-> *state :bpm int (min bpm-max) (max bpm-min)))
+  (-> *state :bpm int (min (last bpm-range)) (max (first bpm-range))))
 
 (defn get-swing [*state]
-  (-> *state :swing int (min 100) (max 0)))
+  (-> *state :swing int (min (last swing-range)) (max (first swing-range))))
 
 (defn component-icon [svg]
   [:span.icon {:ref (fn [el] (when el (aset el "innerHTML" svg)))}])
@@ -148,7 +148,7 @@
        :value value}]]))
 
 (defn component-menu-toggle [state]
-  [:div#menu.input-group
+  [:div#menu
    [:span {:on-click #(swap! state update :show-menu not)}
     [component-icon (if (:show-menu @state) (:exex buttons) (:bars buttons))]]])
 
@@ -188,21 +188,25 @@
      [:div
       [component-menu-toggle state]
       [:div#tempo.input-group
-       [:button {:disabled (< (/ bpm 2) bpm-min)
-                 :on-click #(set-bpm! state (/ bpm 2))} "½"]
-       [:span.clickable {:class (when (<= bpm bpm-min) "disabled")
-                         :on-click #(set-bpm! state (- bpm 1))} "–"]
+       [:button {:disabled (< (/ bpm 2) (first bpm-range))
+                 :on-click (fn [] (update-loop-val! state :bpm #(/ % 2)))} "½"]
+       [:span.clickable {:class (when (<= bpm (first bpm-range)) "disabled")
+                         :on-click #(update-loop-val! state :bpm dec)} "–"]
        [:div#bpm bpm]
-       [:span.clickable {:class (when (>= bpm bpm-max) "disabled")
-                         :on-click #(set-bpm! state (+ bpm 1))} "+"]
-       [:button {:disabled (> (* bpm 2) bpm-max)
-                 :on-click #(set-bpm! state (* bpm 2))} "2"]]
+       [:span.clickable {:class (when (>= bpm (last bpm-range)) "disabled")
+                         :on-click #(update-loop-val! state :bpm inc)} "+"]
+       [:button {:disabled (> (* bpm 2) (last bpm-range))
+                 :on-click (fn [] (update-loop-val! state :bpm #(* % 2)))} "2"]]
       [:div.input-group
-       [component-slider :bpm bpm bpm-min bpm-max]]
+       [component-slider :bpm bpm (first bpm-range) (last bpm-range)]]
       [:div.input-group
        [:button#tap {:on-click #(tap! state)} "tap"]]
       [:div.input-group
-       [component-slider :swing swing 0 75]]
+       [:span.clickable {:class (when (<= swing (first swing-range)) "disabled")
+                         :on-click #(update-loop-val! state :swing dec)} "–"]
+       [component-slider :swing swing (first swing-range) (last swing-range)]
+       [:span.clickable {:class (when (>= swing (last swing-range)) "disabled")
+                         :on-click #(update-loop-val! state :swing inc)} "+"]]
       [:div.input-group
        [:div.highlight.device-warning
         (when (< device-volume 0.9)
