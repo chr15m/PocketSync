@@ -7,6 +7,7 @@
     [dopeloop.main :refer [audio-context
                            seamless-loop-audio-buffer!
                            stop-source!
+                           get-loop-position
                            manage-audio-context-ios
                            poll-device-volume on-ios?
                            lock-screen-orientation
@@ -20,7 +21,8 @@
                     :taps []
                     :audio-source nil
                     :context nil
-                    :show-menu false})
+                    :show-menu false
+                    :playback-position nil})
 
 (def bpm-range [60 240])
 (def swing-range [0 75])
@@ -83,7 +85,7 @@
   (wake-screen-lock false)
   (let [click-track-audio-source (@state :audio-source)]
     (.close (:context @state))
-    (swap! state dissoc :playing :audio-source :audio-buffer :context)
+    (swap! state dissoc :playing :audio-source :audio-buffer :context :playback-position)
     (stop-source! click-track-audio-source)))
 
 (defn average [coll]
@@ -134,7 +136,7 @@
 (defn component-icon [svg]
   [:span.icon {:ref (fn [el] (when el (aset el "innerHTML" svg)))}])
 
-(defn component-slider [k value min-val max-val]
+(defn component-slider [state k value min-val max-val]
   (let [midpoint (/ (+ min-val max-val) 2)]
     [:label
      [:span (when (< value midpoint) {:class "right"}) (name k)]
@@ -147,8 +149,23 @@
        :on-touch-end #(update-loop! state)
        :value value}]]))
 
+(defn poll-playback-position [state ms callback]
+  (js/setInterval
+    (fn []
+      (let [audio-context (:context @state)
+            audio-source (:audio-source @state)]
+        (when (and audio-context audio-source)
+          (print (get-loop-position audio-context audio-source))
+          (callback (get-loop-position audio-context audio-source)))))
+    ms))
+
+(defn component-tick-tock [state]
+  (let [[d1 d2] (:playback-position @state)]
+    [:div#pinger {:class (when (< d1 (/ d2 2)) "on")}]))
+
 (defn component-menu-toggle [state]
   [:div#menu
+   [component-tick-tock state]
    [:span {:on-click #(swap! state update :show-menu not)}
     [component-icon (if (:show-menu @state) (:exex buttons) (:bars buttons))]]])
 
@@ -179,42 +196,46 @@
      [:p [:button.ok {:on-click #(swap! state update :show-menu not)} "Ok"]]]]
    [:div]])
 
-(defn component-main [state]
+(defn component-inputs [state]
   (let [bpm (get-bpm @state)
         swing (get-swing @state)
         playing (@state :playing)
         device-volume (@state :device-volume)]
-    [:div#app
-     [:div
-      [component-menu-toggle state]
-      [:div#tempo.input-group
-       [:button {:disabled (< (/ bpm 2) (first bpm-range))
-                 :on-click (fn [] (update-loop-val! state :bpm #(/ % 2)))} "½"]
-       [:span.clickable {:class (when (<= bpm (first bpm-range)) "disabled")
-                         :on-click #(update-loop-val! state :bpm dec)} "–"]
-       [:div#bpm bpm]
-       [:span.clickable {:class (when (>= bpm (last bpm-range)) "disabled")
-                         :on-click #(update-loop-val! state :bpm inc)} "+"]
-       [:button {:disabled (> (* bpm 2) (last bpm-range))
-                 :on-click (fn [] (update-loop-val! state :bpm #(* % 2)))} "2"]]
-      [:div.input-group
-       [component-slider :bpm bpm (first bpm-range) (last bpm-range)]]
-      [:div.input-group
-       [:button#tap {:on-click #(tap! state)} "tap"]]
-      [:div.input-group
-       [:span.clickable {:class (when (<= swing (first swing-range)) "disabled")
-                         :on-click #(update-loop-val! state :swing dec)} "–"]
-       [component-slider :swing swing (first swing-range) (last swing-range)]
-       [:span.clickable {:class (when (>= swing (last swing-range)) "disabled")
-                         :on-click #(update-loop-val! state :swing inc)} "+"]]
-      [:div.input-group
-       [:div.highlight.device-warning
-        (when (< device-volume 0.9)
-          "Set device volume to max for sync.")]
-       [:button#play {:on-click #(if playing (stop! state) (play! state))
-                      :ref (fn [el]
-                             (when el
-                               (aset el "innerHTML" (if playing (:stop buttons) (:play buttons)))))}]]]]))
+    [:<>
+     [:div#tempo.input-group
+      [:button {:disabled (< (/ bpm 2) (first bpm-range))
+                :on-click (fn [] (update-loop-val! state :bpm #(/ % 2)))} "½"]
+      [:span.clickable {:class (when (<= bpm (first bpm-range)) "disabled")
+                        :on-click #(update-loop-val! state :bpm dec)} "–"]
+      [:div#bpm bpm]
+      [:span.clickable {:class (when (>= bpm (last bpm-range)) "disabled")
+                        :on-click #(update-loop-val! state :bpm inc)} "+"]
+      [:button {:disabled (> (* bpm 2) (last bpm-range))
+                :on-click (fn [] (update-loop-val! state :bpm #(* % 2)))} "2"]]
+     [:div.input-group
+      [component-slider state :bpm bpm (first bpm-range) (last bpm-range)]]
+     [:div.input-group
+      [:button#tap {:on-click #(tap! state)} "tap"]]
+     [:div.input-group
+      [:span.clickable {:class (when (<= swing (first swing-range)) "disabled")
+                        :on-click #(update-loop-val! state :swing dec)} "–"]
+      [component-slider state :swing swing (first swing-range) (last swing-range)]
+      [:span.clickable {:class (when (>= swing (last swing-range)) "disabled")
+                        :on-click #(update-loop-val! state :swing inc)} "+"]]
+     [:div.input-group
+      [:div.highlight.device-warning
+       (when (< device-volume 0.9)
+         "Set device volume to max for sync.")]
+      [:button#play {:on-click #(if playing (stop! state) (play! state))
+                     :ref (fn [el]
+                            (when el
+                              (aset el "innerHTML" (if playing (:stop buttons) (:play buttons)))))}]]]))
+
+(defn component-main [state]
+  [:div#app
+   [:div
+    [component-menu-toggle state]
+    [component-inputs state]]])
 
 (defn component-pages [state]
   (if (:show-menu @state)
@@ -228,5 +249,7 @@
 (defn main! []
   (manage-audio-context-ios #(:context @state))
   (poll-device-volume 250 #(swap! state assoc :device-volume %))
+  ; This triggers app redraw every 40ms which breaks things
+  ;(poll-playback-position state 40 #(swap! state assoc :playback-position %))
   (on-device-ready #(lock-screen-orientation "portrait-primary"))
   (reload!))
