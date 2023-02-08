@@ -321,10 +321,12 @@ span.icon svg {
   height: 20px;
   border-radius: 20px;
   margin: 1em;
+  transition: background 0.2s;
 }
 
 #pinger.on {
   background-color: var(--color-3);
+  transition: background 0s;
 }
 
 #tempo {

@@ -164,7 +164,8 @@
 
 (defn component-tick-tock [playback-position]
   (let [[d1 d2] playback-position]
-    [:div#pinger {:class (when (< d1 (/ d2 2)) "on")}]))
+      [:<>
+       [:div#pinger {:class (when (and d1 d2 (or (< d1 0.150) (> d1 (- d2 0.025)))) "on")}]]))
 
 (defn component-menu-toggle [state]
   [:div#menu
@@ -252,6 +253,6 @@
 (defn main! []
   (manage-audio-context-ios #(:context @state))
   (poll-device-volume 250 #(swap! state assoc :device-volume %))
-  (poll-playback-position! state 20 #(swap! state assoc :playback-position %))
+  (poll-playback-position! state 16 #(swap! state assoc :playback-position %))
   (on-device-ready #(lock-screen-orientation "portrait-primary"))
   (reload!))
