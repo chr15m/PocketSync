@@ -7,6 +7,7 @@
     [dopeloop.main :refer [audio-context
                            seamless-loop-audio-buffer!
                            stop-source!
+                           get-loop-position
                            manage-audio-context-ios
                            poll-device-volume on-ios?
                            lock-screen-orientation
@@ -20,7 +21,8 @@
                     :taps []
                     :audio-source nil
                     :context nil
-                    :show-menu false})
+                    :show-menu false
+                    :playback-position nil})
 
 (def bpm-range [60 240])
 (def swing-range [0 75])
@@ -39,10 +41,43 @@
                               (fn [*state]
                                 (merge initial-state *state))))
 
-(defn create-new-context [*state]
-  (assoc *state :context (audio-context.)))
+; *** non-mutating functions *** ;
 
-(defn make-click-track-audio-buffer [{:keys [context bpm swing] :as *state}]
+(defn average [coll]
+  (/ (reduce + coll) (count coll)))
+
+(defn new-tap [*state]
+  (let [taps (-> *state :taps)
+        bpm (-> *state :bpm)
+        taps (if (seq? taps) taps [])
+        now (.getTime (js/Date.))
+        taps (conj (if (seq? taps) taps []) now)
+        taps (filter #(> % (- now 3000)) taps)
+        tap-threshold (> (count taps) 3)
+        tap-diffs (reduce
+                    (fn [[last-tap accum] tap]
+                      [tap
+                       (if (= last-tap tap)
+                         accum
+                         (conj accum (- last-tap tap)))])
+                    [now []]
+                    taps)
+        avg-tap-length (average (second tap-diffs))
+        bpm (if tap-threshold
+              (int (/ 60000 avg-tap-length))
+              bpm)]
+    (assoc *state :bpm bpm :taps taps)))
+
+
+(defn get-bpm [*state]
+  (-> *state :bpm int (min (last bpm-range)) (max (first bpm-range))))
+
+(defn get-swing [*state]
+  (-> *state :swing int (min (last swing-range)) (max (first swing-range))))
+
+; *** mutations *** ;
+
+(defn make-click-track-audio-buffer! [{:keys [context bpm swing] :as *state}]
   (let [beat-seconds (/ (/ 60 bpm) 2)
         beats 2
         sample-rate (aget context "sampleRate")
@@ -72,7 +107,7 @@
   (let [{:keys [playing]} @state]
     (when playing
       (swap! state
-             #(-> % make-click-track-audio-buffer play-click-track!)))))
+             #(-> % make-click-track-audio-buffer! play-click-track!)))))
 
 (defn play! [state]
   (wake-screen-lock true)
@@ -83,33 +118,17 @@
   (wake-screen-lock false)
   (let [click-track-audio-source (@state :audio-source)]
     (.close (:context @state))
-    (swap! state dissoc :playing :audio-source :audio-buffer :context)
+    (swap! state dissoc :playing :audio-source :audio-buffer :context :playback-position)
     (stop-source! click-track-audio-source)))
 
-(defn average [coll]
-  (/ (reduce + coll) (count coll)))
-
-(defn new-tap [*state]
-  (let [taps (-> *state :taps)
-        bpm (-> *state :bpm)
-        taps (if (seq? taps) taps [])
-        now (.getTime (js/Date.))
-        taps (conj (if (seq? taps) taps []) now)
-        taps (filter #(> % (- now 3000)) taps)
-        tap-threshold (> (count taps) 3)
-        tap-diffs (reduce
-                    (fn [[last-tap accum] tap]
-                      [tap
-                       (if (= last-tap tap)
-                         accum
-                         (conj accum (- last-tap tap)))])
-                    [now []]
-                    taps)
-        avg-tap-length (average (second tap-diffs))
-        bpm (if tap-threshold
-              (int (/ 60000 avg-tap-length))
-              bpm)]
-    (assoc *state :bpm bpm :taps taps)))
+(defn poll-playback-position! [state ms callback]
+  (js/setInterval
+    (fn []
+      (let [audio-context (:context @state)
+            audio-source (:audio-source @state)]
+        (when (and audio-context audio-source)
+          (callback (get-loop-position audio-context audio-source)))))
+    ms))
 
 (defn tap! [state]
   (let [previous-state @state
@@ -125,16 +144,12 @@
   (swap! state update-in [k] update-fn)
   (update-loop! state))
 
-(defn get-bpm [*state]
-  (-> *state :bpm int (min (last bpm-range)) (max (first bpm-range))))
-
-(defn get-swing [*state]
-  (-> *state :swing int (min (last swing-range)) (max (first swing-range))))
+; *** components *** ;
 
 (defn component-icon [svg]
   [:span.icon {:ref (fn [el] (when el (aset el "innerHTML" svg)))}])
 
-(defn component-slider [k value min-val max-val]
+(defn component-slider [state k value min-val max-val]
   (let [midpoint (/ (+ min-val max-val) 2)]
     [:label
      [:span (when (< value midpoint) {:class "right"}) (name k)]
@@ -147,8 +162,13 @@
        :on-touch-end #(update-loop! state)
        :value value}]]))
 
+(defn component-tick-tock [playback-position]
+  (let [[d1 d2] playback-position]
+    [:div#pinger {:class (when (< d1 (/ d2 2)) "on")}]))
+
 (defn component-menu-toggle [state]
   [:div#menu
+   [component-tick-tock (:playback-position @state)]
    [:span {:on-click #(swap! state update :show-menu not)}
     [component-icon (if (:show-menu @state) (:exex buttons) (:bars buttons))]]])
 
@@ -179,42 +199,46 @@
      [:p [:button.ok {:on-click #(swap! state update :show-menu not)} "Ok"]]]]
    [:div]])
 
+(defn component-inputs [state bpm swing playing device-volume]
+    [:<>
+     [:div#tempo.input-group
+      [:button {:disabled (< (/ bpm 2) (first bpm-range))
+                :on-click (fn [] (update-loop-val! state :bpm #(/ % 2)))} "½"]
+      [:span.clickable {:class (when (<= bpm (first bpm-range)) "disabled")
+                        :on-click #(update-loop-val! state :bpm dec)} "–"]
+      [:div#bpm bpm]
+      [:span.clickable {:class (when (>= bpm (last bpm-range)) "disabled")
+                        :on-click #(update-loop-val! state :bpm inc)} "+"]
+      [:button {:disabled (> (* bpm 2) (last bpm-range))
+                :on-click (fn [] (update-loop-val! state :bpm #(* % 2)))} "2"]]
+     [:div.input-group
+      [component-slider state :bpm bpm (first bpm-range) (last bpm-range)]]
+     [:div.input-group
+      [:button#tap {:on-click #(tap! state)} "tap"]]
+     [:div.input-group
+      [:span.clickable {:class (when (<= swing (first swing-range)) "disabled")
+                        :on-click #(update-loop-val! state :swing dec)} "–"]
+      [component-slider state :swing swing (first swing-range) (last swing-range)]
+      [:span.clickable {:class (when (>= swing (last swing-range)) "disabled")
+                        :on-click #(update-loop-val! state :swing inc)} "+"]]
+     [:div.input-group
+      [:div.highlight.device-warning
+       (when (< device-volume 0.9)
+         "Set device volume to max for sync.")]
+      [:button#play {:on-click #(if playing (stop! state) (play! state))
+                     :ref (fn [el]
+                            (when el
+                              (aset el "innerHTML" (if playing (:stop buttons) (:play buttons)))))}]]])
+
 (defn component-main [state]
-  (let [bpm (get-bpm @state)
-        swing (get-swing @state)
-        playing (@state :playing)
-        device-volume (@state :device-volume)]
-    [:div#app
-     [:div
-      [component-menu-toggle state]
-      [:div#tempo.input-group
-       [:button {:disabled (< (/ bpm 2) (first bpm-range))
-                 :on-click (fn [] (update-loop-val! state :bpm #(/ % 2)))} "½"]
-       [:span.clickable {:class (when (<= bpm (first bpm-range)) "disabled")
-                         :on-click #(update-loop-val! state :bpm dec)} "–"]
-       [:div#bpm bpm]
-       [:span.clickable {:class (when (>= bpm (last bpm-range)) "disabled")
-                         :on-click #(update-loop-val! state :bpm inc)} "+"]
-       [:button {:disabled (> (* bpm 2) (last bpm-range))
-                 :on-click (fn [] (update-loop-val! state :bpm #(* % 2)))} "2"]]
-      [:div.input-group
-       [component-slider :bpm bpm (first bpm-range) (last bpm-range)]]
-      [:div.input-group
-       [:button#tap {:on-click #(tap! state)} "tap"]]
-      [:div.input-group
-       [:span.clickable {:class (when (<= swing (first swing-range)) "disabled")
-                         :on-click #(update-loop-val! state :swing dec)} "–"]
-       [component-slider :swing swing (first swing-range) (last swing-range)]
-       [:span.clickable {:class (when (>= swing (last swing-range)) "disabled")
-                         :on-click #(update-loop-val! state :swing inc)} "+"]]
-      [:div.input-group
-       [:div.highlight.device-warning
-        (when (< device-volume 0.9)
-          "Set device volume to max for sync.")]
-       [:button#play {:on-click #(if playing (stop! state) (play! state))
-                      :ref (fn [el]
-                             (when el
-                               (aset el "innerHTML" (if playing (:stop buttons) (:play buttons)))))}]]]]))
+  [:div#app
+   [:div
+    [component-menu-toggle state]
+    (let [bpm (get-bpm @state)
+          swing (get-swing @state)
+          playing (@state :playing)
+          device-volume (@state :device-volume)]
+      [component-inputs state bpm swing playing device-volume])]])
 
 (defn component-pages [state]
   (if (:show-menu @state)
@@ -228,5 +252,6 @@
 (defn main! []
   (manage-audio-context-ios #(:context @state))
   (poll-device-volume 250 #(swap! state assoc :device-volume %))
+  (poll-playback-position! state 20 #(swap! state assoc :playback-position %))
   (on-device-ready #(lock-screen-orientation "portrait-primary"))
   (reload!))
