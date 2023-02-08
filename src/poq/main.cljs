@@ -41,10 +41,43 @@
                               (fn [*state]
                                 (merge initial-state *state))))
 
-(defn create-new-context [*state]
-  (assoc *state :context (audio-context.)))
+; *** non-mutating functions *** ;
 
-(defn make-click-track-audio-buffer [{:keys [context bpm swing] :as *state}]
+(defn average [coll]
+  (/ (reduce + coll) (count coll)))
+
+(defn new-tap [*state]
+  (let [taps (-> *state :taps)
+        bpm (-> *state :bpm)
+        taps (if (seq? taps) taps [])
+        now (.getTime (js/Date.))
+        taps (conj (if (seq? taps) taps []) now)
+        taps (filter #(> % (- now 3000)) taps)
+        tap-threshold (> (count taps) 3)
+        tap-diffs (reduce
+                    (fn [[last-tap accum] tap]
+                      [tap
+                       (if (= last-tap tap)
+                         accum
+                         (conj accum (- last-tap tap)))])
+                    [now []]
+                    taps)
+        avg-tap-length (average (second tap-diffs))
+        bpm (if tap-threshold
+              (int (/ 60000 avg-tap-length))
+              bpm)]
+    (assoc *state :bpm bpm :taps taps)))
+
+
+(defn get-bpm [*state]
+  (-> *state :bpm int (min (last bpm-range)) (max (first bpm-range))))
+
+(defn get-swing [*state]
+  (-> *state :swing int (min (last swing-range)) (max (first swing-range))))
+
+; *** mutations *** ;
+
+(defn make-click-track-audio-buffer! [{:keys [context bpm swing] :as *state}]
   (let [beat-seconds (/ (/ 60 bpm) 2)
         beats 2
         sample-rate (aget context "sampleRate")
@@ -74,7 +107,7 @@
   (let [{:keys [playing]} @state]
     (when playing
       (swap! state
-             #(-> % make-click-track-audio-buffer play-click-track!)))))
+             #(-> % make-click-track-audio-buffer! play-click-track!)))))
 
 (defn play! [state]
   (wake-screen-lock true)
@@ -88,30 +121,14 @@
     (swap! state dissoc :playing :audio-source :audio-buffer :context :playback-position)
     (stop-source! click-track-audio-source)))
 
-(defn average [coll]
-  (/ (reduce + coll) (count coll)))
-
-(defn new-tap [*state]
-  (let [taps (-> *state :taps)
-        bpm (-> *state :bpm)
-        taps (if (seq? taps) taps [])
-        now (.getTime (js/Date.))
-        taps (conj (if (seq? taps) taps []) now)
-        taps (filter #(> % (- now 3000)) taps)
-        tap-threshold (> (count taps) 3)
-        tap-diffs (reduce
-                    (fn [[last-tap accum] tap]
-                      [tap
-                       (if (= last-tap tap)
-                         accum
-                         (conj accum (- last-tap tap)))])
-                    [now []]
-                    taps)
-        avg-tap-length (average (second tap-diffs))
-        bpm (if tap-threshold
-              (int (/ 60000 avg-tap-length))
-              bpm)]
-    (assoc *state :bpm bpm :taps taps)))
+(defn poll-playback-position! [state ms callback]
+  (js/setInterval
+    (fn []
+      (let [audio-context (:context @state)
+            audio-source (:audio-source @state)]
+        (when (and audio-context audio-source)
+          (callback (get-loop-position audio-context audio-source)))))
+    ms))
 
 (defn tap! [state]
   (let [previous-state @state
@@ -127,11 +144,7 @@
   (swap! state update-in [k] update-fn)
   (update-loop! state))
 
-(defn get-bpm [*state]
-  (-> *state :bpm int (min (last bpm-range)) (max (first bpm-range))))
-
-(defn get-swing [*state]
-  (-> *state :swing int (min (last swing-range)) (max (first swing-range))))
+; *** components *** ;
 
 (defn component-icon [svg]
   [:span.icon {:ref (fn [el] (when el (aset el "innerHTML" svg)))}])
@@ -149,23 +162,13 @@
        :on-touch-end #(update-loop! state)
        :value value}]]))
 
-(defn poll-playback-position [state ms callback]
-  (js/setInterval
-    (fn []
-      (let [audio-context (:context @state)
-            audio-source (:audio-source @state)]
-        (when (and audio-context audio-source)
-          (print (get-loop-position audio-context audio-source))
-          (callback (get-loop-position audio-context audio-source)))))
-    ms))
-
-(defn component-tick-tock [state]
-  (let [[d1 d2] (:playback-position @state)]
+(defn component-tick-tock [playback-position]
+  (let [[d1 d2] playback-position]
     [:div#pinger {:class (when (< d1 (/ d2 2)) "on")}]))
 
 (defn component-menu-toggle [state]
   [:div#menu
-   [component-tick-tock state]
+   [component-tick-tock (:playback-position @state)]
    [:span {:on-click #(swap! state update :show-menu not)}
     [component-icon (if (:show-menu @state) (:exex buttons) (:bars buttons))]]])
 
@@ -196,11 +199,7 @@
      [:p [:button.ok {:on-click #(swap! state update :show-menu not)} "Ok"]]]]
    [:div]])
 
-(defn component-inputs [state]
-  (let [bpm (get-bpm @state)
-        swing (get-swing @state)
-        playing (@state :playing)
-        device-volume (@state :device-volume)]
+(defn component-inputs [state bpm swing playing device-volume]
     [:<>
      [:div#tempo.input-group
       [:button {:disabled (< (/ bpm 2) (first bpm-range))
@@ -229,13 +228,17 @@
       [:button#play {:on-click #(if playing (stop! state) (play! state))
                      :ref (fn [el]
                             (when el
-                              (aset el "innerHTML" (if playing (:stop buttons) (:play buttons)))))}]]]))
+                              (aset el "innerHTML" (if playing (:stop buttons) (:play buttons)))))}]]])
 
 (defn component-main [state]
   [:div#app
    [:div
     [component-menu-toggle state]
-    [component-inputs state]]])
+    (let [bpm (get-bpm @state)
+          swing (get-swing @state)
+          playing (@state :playing)
+          device-volume (@state :device-volume)]
+      [component-inputs state bpm swing playing device-volume])]])
 
 (defn component-pages [state]
   (if (:show-menu @state)
@@ -249,7 +252,6 @@
 (defn main! []
   (manage-audio-context-ios #(:context @state))
   (poll-device-volume 250 #(swap! state assoc :device-volume %))
-  ; This triggers app redraw every 40ms which breaks things
-  ;(poll-playback-position state 40 #(swap! state assoc :playback-position %))
+  (poll-playback-position! state 20 #(swap! state assoc :playback-position %))
   (on-device-ready #(lock-screen-orientation "portrait-primary"))
   (reload!))
